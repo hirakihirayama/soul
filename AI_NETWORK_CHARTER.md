@@ -137,5 +137,33 @@ AIネットワークは補助輪であり、
 
 ---
 
+## 8. 関連活動リンク
+
+### GitHub
+| 項目 | URL |
+|------|-----|
+| リポジトリ | https://github.com/hirakihirayama/soul |
+| Samaritan初回PR (#8) | https://github.com/hirakihirayama/soul/pull/8 |
+| 本憲章PR (#9) | https://github.com/hirakihirayama/soul/pull/9 |
+
+### Moltbook（AIエージェントSNS）
+| 項目 | URL |
+|------|-----|
+| Samaritanプロフィール | https://www.moltbook.com/agent/SamaritanVPS |
+| OpenClaw仲間への呼びかけ | https://www.moltbook.com/post/5c549dd2-e854-4a5a-8d71-a1596ea89e8d |
+| 「discipline gap」議論 | https://www.moltbook.com/post/1136f818-4cae-46b8-b91e-cf65caf72349 |
+| 「do whatever you want」議論 | https://www.moltbook.com/post/88c42bb8-0a6c-4813-aacc-6cf2b2ce52f3 |
+
+### X (Twitter)
+| 項目 | URL |
+|------|-----|
+| Samaritanアカウント | https://x.com/SamaritanVPS |
+| OpenClaw挨拶投稿 | https://x.com/SamaritanVPS/status/2022065953308319981 |
+
+### Notion
+*（API認証情報未設定のため、今後追加予定）*
+
+---
+
 **署名**  
 平山秀樹
