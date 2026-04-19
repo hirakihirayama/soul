@@ -572,6 +572,59 @@ html, body {
 }
 .btn-secondary:active { opacity: .75; transform: scale(.98); }
 
+/* ===== Name Entry View ===== */
+.name-entry-wrap {
+  max-width: 360px;
+  margin: 40px auto 0;
+  text-align: center;
+  padding: 0 8px;
+}
+.name-entry-wrap .hero-badge { font-size: 52px; margin-bottom: 16px; }
+.name-entry-wrap h2 { font-size: 24px; font-weight: 800; margin-bottom: 10px; }
+.name-entry-wrap .hero-sub { font-size: 15px; color: var(--c-text-sub); margin-bottom: 28px; }
+
+.name-input {
+  width: 100%;
+  border: 2px solid var(--c-border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  font-size: 17px;
+  outline: none;
+  transition: border-color .2s;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.name-input:focus { border-color: var(--c-primary); }
+
+.name-loading {
+  font-size: 14px;
+  color: var(--c-text-sub);
+  margin-bottom: 12px;
+  padding: 8px;
+}
+
+.name-note {
+  font-size: 12px;
+  color: var(--c-text-sub);
+  margin-top: 14px;
+  line-height: 1.6;
+}
+
+/* 名前バッジ（ヘッダー右） */
+.user-badge {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--c-primary);
+  background: var(--c-primary-light);
+  border-radius: 20px;
+  padding: 4px 10px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+  cursor: pointer;
+}
+
 /* ===== Safe area for notch devices ===== */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .view { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
@@ -591,7 +644,22 @@ html, body {
       <span id="header-title">Claude Code 学習</span>
       <div class="header-right"></div>
     </header>
+
     <main id="main">
+      <!-- 名前入力画面 -->
+      <div id="view-name-entry" class="view">
+        <div class="name-entry-wrap">
+          <div class="hero-badge">📝</div>
+          <h2>はじめに</h2>
+          <p class="hero-sub">あなたの名前を入力してください。<br>進捗の保存・管理に使用されます。</p>
+          <input type="text" id="input-name" class="name-input" placeholder="例：田中 太郎" maxlength="20" autocomplete="off">
+          <div id="name-loading" class="name-loading" style="display:none">進捗を読み込み中…</div>
+          <button id="btn-name-submit" class="btn-primary">はじめる →</button>
+          <p class="name-note">※ 既に学習中の方は同じ名前を入力すると進捗が引き継がれます</p>
+        </div>
+      </div>
+
+      <!-- ホーム画面 -->
       <div id="view-home" class="view active">
         <div class="home-hero">
           <div class="hero-badge">🚀</div>
@@ -599,8 +667,12 @@ html, body {
           <p class="hero-sub">隙間時間に読んで問題を解いて<br>Claude Codeを使い倒そう</p>
         </div>
         <div id="module-list" class="module-list"></div>
-        <div class="home-footer"><p>各モジュールは <strong>5〜10分</strong> で読めます</p></div>
+        <div class="home-footer">
+          <p>各モジュールは <strong>5〜10分</strong> で読めます</p>
+        </div>
       </div>
+
+      <!-- レッスンリスト -->
       <div id="view-lesson-list" class="view">
         <div id="lesson-list-header" class="module-header"></div>
         <div id="lesson-list" class="lesson-list"></div>
@@ -609,9 +681,13 @@ html, body {
           <button id="btn-start-quiz" class="btn-primary">クイズに挑戦する →</button>
         </div>
       </div>
+
+      <!-- レッスン本文 -->
       <div id="view-lesson" class="view">
         <div class="progress-bar-wrap">
-          <div class="progress-bar-bg"><div id="lesson-progress-fill" class="progress-bar-fill"></div></div>
+          <div class="progress-bar-bg">
+            <div id="lesson-progress-fill" class="progress-bar-fill"></div>
+          </div>
           <span id="lesson-progress-label" class="progress-label"></span>
         </div>
         <div id="lesson-content" class="lesson-content"></div>
@@ -620,9 +696,13 @@ html, body {
           <button id="btn-next-lesson" class="btn-primary">次へ →</button>
         </div>
       </div>
+
+      <!-- クイズ -->
       <div id="view-quiz" class="view">
         <div class="quiz-header">
-          <div class="progress-bar-bg"><div id="quiz-progress-fill" class="progress-bar-fill"></div></div>
+          <div class="progress-bar-bg">
+            <div id="quiz-progress-fill" class="progress-bar-fill"></div>
+          </div>
           <span id="quiz-progress-label" class="progress-label"></span>
         </div>
         <div class="quiz-body">
@@ -634,6 +714,8 @@ html, body {
           <button id="btn-quiz-next" class="btn-primary" style="display:none">次の問題 →</button>
         </div>
       </div>
+
+      <!-- 結果画面 -->
       <div id="view-result" class="view">
         <div class="result-wrap">
           <div id="result-emoji" class="result-emoji">🎉</div>
@@ -649,6 +731,7 @@ html, body {
       </div>
     </main>
   </div>
+
   <script>
 /* Module 1: Claude Codeとは何か */
 const MODULE1 = {
@@ -1245,7 +1328,12 @@ const MODULE5 = {
 const COURSES = [MODULE1, MODULE2, MODULE3, MODULE4, MODULE5];
 /* app.js — SPA ルーティング・クイズロジック・進捗管理 */
 
+// ===== GAS設定 =====
+// デプロイ後にURLをここに貼り付けてbundle.htmlを再生成してください
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbziPlC4bmzepGUhmho5NCNiLvv_dGxA42jRjTEEuZze083aHDn3RxNx1bmEfQEiIA1J/exec';
+
 const STORAGE_KEY = 'ccl_progress_v1';
+const USERNAME_KEY = 'ccl_username';
 
 // ===== State =====
 let state = {
@@ -1255,6 +1343,36 @@ let state = {
   quizCurrentIdx: 0,
 };
 
+// ===== Username helpers =====
+function getUsername() {
+  return localStorage.getItem(USERNAME_KEY) || '';
+}
+function setUsername(name) {
+  localStorage.setItem(USERNAME_KEY, name.trim());
+}
+
+// ===== GAS sync =====
+function syncToGAS(moduleId, action, value) {
+  const name = getUsername();
+  if (!name || GAS_URL.startsWith('REPLACE')) return;
+  fetch(GAS_URL, {
+    method: 'POST',
+    body: JSON.stringify({ name, moduleId, action, value }),
+  }).catch(() => {}); // fire-and-forget
+}
+
+async function fetchProgressFromGAS(name) {
+  if (GAS_URL.startsWith('REPLACE')) return null;
+  try {
+    const res = await fetch(`${GAS_URL}?name=${encodeURIComponent(name)}`, { redirect: 'follow' });
+    const data = await res.json();
+    if (data.error) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
 // ===== Progress helpers =====
 function loadProgress() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
@@ -1262,10 +1380,26 @@ function loadProgress() {
 function saveProgress(p) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
 }
+function mergeProgress(local, remote) {
+  if (!remote) return local;
+  const merged = { ...local };
+  for (const [moduleId, rp] of Object.entries(remote)) {
+    if (!merged[moduleId]) merged[moduleId] = { lessons: [], quizScore: null };
+    const allLessons = new Set([...merged[moduleId].lessons, ...(rp.lessons || [])]);
+    merged[moduleId].lessons = [...allLessons];
+    if (rp.quizScore && !merged[moduleId].quizScore) {
+      merged[moduleId].quizScore = rp.quizScore;
+    }
+  }
+  return merged;
+}
 function markLessonDone(moduleId, lessonId) {
   const p = loadProgress();
   if (!p[moduleId]) p[moduleId] = { lessons: [], quizScore: null };
-  if (!p[moduleId].lessons.includes(lessonId)) p[moduleId].lessons.push(lessonId);
+  if (!p[moduleId].lessons.includes(lessonId)) {
+    p[moduleId].lessons.push(lessonId);
+    syncToGAS(moduleId, 'lesson', lessonId);
+  }
   saveProgress(p);
 }
 function saveQuizScore(moduleId, score, total) {
@@ -1273,6 +1407,7 @@ function saveQuizScore(moduleId, score, total) {
   if (!p[moduleId]) p[moduleId] = { lessons: [], quizScore: null };
   p[moduleId].quizScore = { score, total };
   saveProgress(p);
+  syncToGAS(moduleId, 'quiz', `${score}/${total}`);
 }
 function getModuleProgress(moduleId) {
   const p = loadProgress();
@@ -1284,11 +1419,58 @@ function showView(id) {
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-
 function setHeader(title, showBack) {
   document.getElementById('header-title').textContent = title;
-  const btn = document.getElementById('btn-back');
-  btn.style.visibility = showBack ? 'visible' : 'hidden';
+  document.getElementById('btn-back').style.visibility = showBack ? 'visible' : 'hidden';
+  renderUserBadge();
+}
+function renderUserBadge() {
+  const name = getUsername();
+  const right = document.querySelector('.header-right');
+  if (name) {
+    right.innerHTML = `<span class="user-badge" onclick="confirmChangeName()" title="名前を変更">${name}</span>`;
+  } else {
+    right.innerHTML = '';
+  }
+}
+function confirmChangeName() {
+  if (confirm('名前を変更しますか？\n変更するとローカルの進捗はリセットされます。')) {
+    localStorage.removeItem(USERNAME_KEY);
+    localStorage.removeItem(STORAGE_KEY);
+    renderNameEntry();
+  }
+}
+
+// ===== Name Entry =====
+function renderNameEntry() {
+  setHeader('Claude Code 学習', false);
+  showView('view-name-entry');
+  const input = document.getElementById('input-name');
+  input.value = '';
+  input.focus();
+
+  document.getElementById('btn-name-submit').onclick = async () => {
+    const name = input.value.trim();
+    if (!name) { input.focus(); return; }
+    setUsername(name);
+
+    const loading = document.getElementById('name-loading');
+    const btn = document.getElementById('btn-name-submit');
+    loading.style.display = 'block';
+    btn.disabled = true;
+
+    const remote = await fetchProgressFromGAS(name);
+    if (remote) {
+      const merged = mergeProgress(loadProgress(), remote);
+      saveProgress(merged);
+    }
+
+    loading.style.display = 'none';
+    btn.disabled = false;
+    renderHome();
+  };
+
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-name-submit').click(); });
 }
 
 // ===== Home =====
@@ -1324,17 +1506,14 @@ function openModule(moduleId) {
   state.currentModule = m;
   renderLessonList(m);
 }
-
 function renderLessonList(m) {
   setHeader(m.title, true);
   document.getElementById('btn-back').onclick = renderHome;
   showView('view-lesson-list');
-
   document.getElementById('lesson-list-header').innerHTML = `
 <div class="m-emoji">${m.emoji}</div>
 <h2>${m.title}</h2>
 <p>${m.desc}</p>`;
-
   const mp = getModuleProgress(m.id);
   const list = document.getElementById('lesson-list');
   list.innerHTML = m.lessons.map((l, i) => {
@@ -1349,7 +1528,6 @@ function renderLessonList(m) {
   <div class="lesson-check">${done ? '✅' : '›'}</div>
 </div>`;
   }).join('');
-
   const allDone = m.lessons.every(l => mp.lessons.includes(l.id));
   const cta = document.getElementById('quiz-cta');
   cta.style.display = allDone ? 'block' : 'none';
@@ -1361,36 +1539,28 @@ function openLesson(idx) {
   state.currentLessonIdx = idx;
   renderLesson();
 }
-
 function renderLesson() {
   const m = state.currentModule;
   const lesson = m.lessons[state.currentLessonIdx];
   const total = m.lessons.length;
   const idx = state.currentLessonIdx;
-
   setHeader(lesson.title, true);
   document.getElementById('btn-back').onclick = () => renderLessonList(m);
   showView('view-lesson');
-
   const pct = Math.round((idx + 1) / total * 100);
   document.getElementById('lesson-progress-fill').style.width = pct + '%';
   document.getElementById('lesson-progress-label').textContent = `${idx + 1} / ${total}`;
   document.getElementById('lesson-content').innerHTML = lesson.html;
-
   markLessonDone(m.id, lesson.id);
-
   const mp = getModuleProgress(m.id);
   const allDone = m.lessons.every(l => mp.lessons.includes(l.id));
-
   const prevBtn = document.getElementById('btn-prev-lesson');
   const nextBtn = document.getElementById('btn-next-lesson');
-
   prevBtn.style.visibility = idx > 0 ? 'visible' : 'hidden';
-  prevBtn.onclick = () => { state.currentLessonIdx--; renderLesson(); window.scrollTo(0,0); };
-
+  prevBtn.onclick = () => { state.currentLessonIdx--; renderLesson(); window.scrollTo(0, 0); };
   if (idx < total - 1) {
     nextBtn.textContent = '次へ →';
-    nextBtn.onclick = () => { state.currentLessonIdx++; renderLesson(); window.scrollTo(0,0); };
+    nextBtn.onclick = () => { state.currentLessonIdx++; renderLesson(); window.scrollTo(0, 0); };
   } else if (allDone) {
     nextBtn.textContent = 'クイズへ →';
     nextBtn.onclick = () => startQuiz(m);
@@ -1407,60 +1577,47 @@ function startQuiz(m) {
   state.quizCurrentIdx = 0;
   renderQuizQuestion();
 }
-
 function renderQuizQuestion() {
   const m = state.currentModule;
   const questions = m.quiz;
   const idx = state.quizCurrentIdx;
   const q = questions[idx];
-
   setHeader('クイズ', true);
   document.getElementById('btn-back').onclick = () => renderLessonList(m);
   showView('view-quiz');
-
   const pct = Math.round((idx / questions.length) * 100);
   document.getElementById('quiz-progress-fill').style.width = pct + '%';
   document.getElementById('quiz-progress-label').textContent = `${idx + 1} / ${questions.length}`;
   document.getElementById('quiz-question').textContent = `Q${idx + 1}. ${q.q}`;
-
-  const optContainer = document.getElementById('quiz-options');
   const labels = ['A', 'B', 'C', 'D'];
-  optContainer.innerHTML = q.options.map((opt, i) => `
+  document.getElementById('quiz-options').innerHTML = q.options.map((opt, i) => `
 <button class="quiz-option" onclick="answerQuiz(${i})" id="opt-${i}">
-  <span class="quiz-option-label">${labels[i]}</span>
-  ${opt}
+  <span class="quiz-option-label">${labels[i]}</span>${opt}
 </button>`).join('');
-
   const expEl = document.getElementById('quiz-explanation');
   expEl.className = 'quiz-explanation';
   expEl.textContent = '';
-
   const nextBtn = document.getElementById('btn-quiz-next');
   nextBtn.style.display = 'none';
 }
-
 function answerQuiz(selectedIdx) {
   const m = state.currentModule;
   const q = m.quiz[state.quizCurrentIdx];
   const isCorrect = selectedIdx === q.correct;
-
   document.querySelectorAll('.quiz-option').forEach((btn, i) => {
     btn.disabled = true;
     if (i === q.correct) btn.classList.add('correct');
     else if (i === selectedIdx && !isCorrect) btn.classList.add('wrong');
   });
-
   const expEl = document.getElementById('quiz-explanation');
   expEl.className = `quiz-explanation show ${isCorrect ? 'correct-exp' : 'wrong-exp'}`;
   expEl.innerHTML = `<span class="exp-label">${isCorrect ? '✅ 正解！' : '❌ 不正解'}</span>${q.exp}`;
-
   state.quizAnswers.push({ correct: isCorrect, selected: selectedIdx, answer: q.correct });
-
   const nextBtn = document.getElementById('btn-quiz-next');
   nextBtn.style.display = 'block';
   const isLast = state.quizCurrentIdx >= m.quiz.length - 1;
   nextBtn.textContent = isLast ? '結果を見る →' : '次の問題 →';
-  nextBtn.onclick = isLast ? showResult : () => { state.quizCurrentIdx++; renderQuizQuestion(); window.scrollTo(0,0); };
+  nextBtn.onclick = isLast ? showResult : () => { state.quizCurrentIdx++; renderQuizQuestion(); window.scrollTo(0, 0); };
 }
 
 // ===== Result =====
@@ -1469,27 +1626,21 @@ function showResult() {
   const score = state.quizAnswers.filter(a => a.correct).length;
   const total = m.quiz.length;
   const pct = Math.round(score / total * 100);
-
   saveQuizScore(m.id, score, total);
-
   setHeader('クイズ結果', true);
   document.getElementById('btn-back').onclick = () => renderLessonList(m);
   showView('view-result');
-
   let emoji = '😢', msg = 'もう一度チャレンジしてみましょう！';
   if (pct === 100) { emoji = '🎉'; msg = '完璧です！全問正解素晴らしい！'; }
   else if (pct >= 70) { emoji = '😊'; msg = 'よくできました！もう少しで完璧です。'; }
   else if (pct >= 50) { emoji = '🤔'; msg = 'レッスンをもう一度読んでみましょう。'; }
-
   document.getElementById('result-emoji').textContent = emoji;
   document.getElementById('result-title').textContent = pct === 100 ? '全問正解！' : 'クイズ完了！';
   document.getElementById('result-score').textContent = `${score} / ${total}`;
   document.getElementById('result-message').textContent = msg;
-
-  const answersEl = document.getElementById('result-answers');
-  answersEl.innerHTML = state.quizAnswers.map((a, i) => {
+  const labels = ['A', 'B', 'C', 'D'];
+  document.getElementById('result-answers').innerHTML = state.quizAnswers.map((a, i) => {
     const q = m.quiz[i];
-    const labels = ['A', 'B', 'C', 'D'];
     return `
 <div class="result-answer-item">
   <span class="ans-icon">${a.correct ? '✅' : '❌'}</span>
@@ -1499,13 +1650,18 @@ function showResult() {
   </div>
 </div>`;
   }).join('');
-
   document.getElementById('btn-retry').onclick = () => startQuiz(m);
   document.getElementById('btn-home').onclick = renderHome;
 }
 
 // ===== Init =====
-document.addEventListener('DOMContentLoaded', renderHome);
+document.addEventListener('DOMContentLoaded', () => {
+  if (getUsername()) {
+    renderHome();
+  } else {
+    renderNameEntry();
+  }
+});
   </script>
 </body>
 </html>
