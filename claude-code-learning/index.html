@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Claude Code 学習コース</title>
+  <style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --c-bg: #f7f8fc;
+  --c-surface: #ffffff;
+  --c-primary: #5b4fcf;
+  --c-primary-light: #ede9ff;
+  --c-accent: #ff6b35;
+  --c-text: #1a1a2e;
+  --c-text-sub: #6b7280;
+  --c-border: #e5e7eb;
+  --c-success: #22c55e;
+  --c-error: #ef4444;
+  --c-warning: #f59e0b;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.10);
+  --r: 16px;
+  --header-h: 56px;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ===== Header ===== */
+#header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--header-h);
+  background: var(--c-surface);
+  border-bottom: 1px solid var(--c-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  z-index: 100;
+}
+
+#header-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--c-text);
+  flex: 1;
+  text-align: center;
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-primary);
+  transition: background .15s;
+}
+.btn-icon:active { background: var(--c-primary-light); }
+.header-right { width: 40px; }
+
+/* ===== Main ===== */
+#main {
+  margin-top: var(--header-h);
+  min-height: calc(100vh - var(--header-h));
+  position: relative;
+}
+
+/* ===== Views ===== */
+.view {
+  display: none;
+  padding: 20px 16px 100px;
+  animation: fadeIn .2s ease;
+}
+.view.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== Home View ===== */
+.home-hero {
+  background: linear-gradient(135deg, var(--c-primary) 0%, #7c3aed 100%);
+  color: white;
+  border-radius: var(--r);
+  padding: 28px 24px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+.hero-badge {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+.home-hero h2 {
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.4;
+  margin-bottom: 10px;
+}
+.hero-sub {
+  font-size: 14px;
+  opacity: .88;
+  line-height: 1.6;
+}
+
+.module-list { display: flex; flex-direction: column; gap: 12px; }
+
+.module-card {
+  background: var(--c-surface);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-sm);
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s;
+  border: 2px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.module-card:active { transform: scale(.98); box-shadow: none; }
+.module-card.completed { border-color: var(--c-success); }
+
+.module-emoji {
+  font-size: 32px;
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.module-card-body { flex: 1; min-width: 0; }
+.module-card-title {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+.module-card-desc {
+  font-size: 13px;
+  color: var(--c-text-sub);
+  margin-bottom: 8px;
+}
+.module-progress-bar {
+  height: 5px;
+  background: var(--c-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.module-progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: var(--c-success);
+  transition: width .4s ease;
+}
+.module-progress-label {
+  font-size: 11px;
+  color: var(--c-text-sub);
+  margin-top: 3px;
+  display: block;
+}
+.module-arrow {
+  font-size: 18px;
+  color: var(--c-text-sub);
+}
+.home-footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--c-text-sub);
+}
+
+/* Module accent colors */
+.accent-0 .module-emoji { background: #ede9ff; }
+.accent-1 .module-emoji { background: #fef3c7; }
+.accent-2 .module-emoji { background: #d1fae5; }
+.accent-3 .module-emoji { background: #dbeafe; }
+.accent-4 .module-emoji { background: #fce7f3; }
+
+.accent-0 .module-progress-fill { background: var(--c-primary); }
+.accent-1 .module-progress-fill { background: var(--c-warning); }
+.accent-2 .module-progress-fill { background: var(--c-success); }
+.accent-3 .module-progress-fill { background: #3b82f6; }
+.accent-4 .module-progress-fill { background: #ec4899; }
+
+/* ===== Lesson List View ===== */
+.module-header {
+  background: var(--c-surface);
+  border-radius: var(--r);
+  padding: 20px;
+  margin-bottom: 16px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+.module-header .m-emoji { font-size: 40px; margin-bottom: 8px; }
+.module-header h2 { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+.module-header p { font-size: 14px; color: var(--c-text-sub); }
+
+.lesson-list { display: flex; flex-direction: column; gap: 10px; }
+
+.lesson-item {
+  background: var(--c-surface);
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-sm);
+  transition: transform .12s;
+  border: 2px solid transparent;
+}
+.lesson-item:active { transform: scale(.98); }
+.lesson-item.done { border-color: var(--c-success); }
+.lesson-item.locked { opacity: .45; cursor: not-allowed; }
+
+.lesson-num {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--c-primary-light);
+  color: var(--c-primary);
+  font-weight: 800;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.lesson-item.done .lesson-num {
+  background: var(--c-success);
+  color: white;
+}
+.lesson-item-title { font-size: 15px; font-weight: 600; }
+.lesson-item-meta { font-size: 12px; color: var(--c-text-sub); margin-top: 2px; }
+.lesson-check { margin-left: auto; font-size: 18px; }
+
+.quiz-cta {
+  margin-top: 20px;
+  background: linear-gradient(135deg, var(--c-primary) 0%, #7c3aed 100%);
+  border-radius: var(--r);
+  padding: 24px;
+  text-align: center;
+  color: white;
+}
+.quiz-cta p { font-size: 15px; margin-bottom: 14px; line-height: 1.5; }
+
+/* ===== Progress Bar ===== */
+.progress-bar-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.progress-bar-bg {
+  flex: 1;
+  height: 6px;
+  background: var(--c-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: var(--c-primary);
+  transition: width .4s ease;
+}
+.progress-label {
+  font-size: 12px;
+  color: var(--c-text-sub);
+  white-space: nowrap;
+}
+
+/* ===== Lesson Content ===== */
+.lesson-content {
+  background: var(--c-surface);
+  border-radius: var(--r);
+  padding: 24px 20px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 20px;
+}
+.lesson-content h3 {
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: var(--c-primary);
+}
+.lesson-content h4 {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 20px 0 8px;
+  color: var(--c-text);
+}
+.lesson-content p {
+  font-size: 15px;
+  line-height: 1.75;
+  margin-bottom: 14px;
+  color: var(--c-text);
+}
+.lesson-content ul, .lesson-content ol {
+  padding-left: 20px;
+  margin-bottom: 14px;
+}
+.lesson-content li {
+  font-size: 15px;
+  line-height: 1.75;
+  margin-bottom: 6px;
+}
+.lesson-content code {
+  background: #f1f5f9;
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-family: 'Menlo', 'SF Mono', 'Consolas', monospace;
+  font-size: 13px;
+  color: #c0392b;
+}
+.lesson-content pre {
+  background: #1e293b;
+  border-radius: 10px;
+  padding: 16px;
+  overflow-x: auto;
+  margin-bottom: 14px;
+}
+.lesson-content pre code {
+  background: none;
+  color: #e2e8f0;
+  font-size: 13px;
+  padding: 0;
+}
+.tip-box {
+  background: var(--c-primary-light);
+  border-left: 4px solid var(--c-primary);
+  border-radius: 0 10px 10px 0;
+  padding: 14px 16px;
+  margin: 16px 0;
+}
+.tip-box .tip-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--c-primary);
+  margin-bottom: 6px;
+}
+.tip-box p { font-size: 14px; margin-bottom: 0; color: var(--c-primary); }
+
+.warn-box {
+  background: #fff7ed;
+  border-left: 4px solid var(--c-warning);
+  border-radius: 0 10px 10px 0;
+  padding: 14px 16px;
+  margin: 16px 0;
+}
+.warn-box .tip-label { color: var(--c-warning); }
+.warn-box p { font-size: 14px; margin-bottom: 0; color: #92400e; }
+
+.example-box {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin: 16px 0;
+}
+.example-box .tip-label { color: var(--c-success); }
+.example-box p { font-size: 14px; margin-bottom: 0; color: #166534; }
+
+.table-wrap { overflow-x: auto; margin-bottom: 14px; }
+.lesson-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.lesson-table th {
+  background: var(--c-primary);
+  color: white;
+  padding: 8px 10px;
+  text-align: left;
+}
+.lesson-table td {
+  border: 1px solid var(--c-border);
+  padding: 8px 10px;
+}
+.lesson-table tr:nth-child(even) td { background: var(--c-bg); }
+
+.lesson-nav {
+  display: flex;
+  gap: 12px;
+}
+.lesson-nav button { flex: 1; }
+
+/* ===== Quiz View ===== */
+.quiz-header { margin-bottom: 20px; }
+
+.quiz-body {
+  background: var(--c-surface);
+  border-radius: var(--r);
+  padding: 24px 20px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 16px;
+}
+
+.quiz-question {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.55;
+  margin-bottom: 20px;
+  color: var(--c-text);
+}
+
+.quiz-options { display: flex; flex-direction: column; gap: 10px; }
+
+.quiz-option {
+  border: 2px solid var(--c-border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-size: 15px;
+  background: var(--c-surface);
+  text-align: left;
+  transition: border-color .15s, background .15s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.4;
+}
+.quiz-option:active:not(:disabled) { background: var(--c-primary-light); }
+.quiz-option.selected { border-color: var(--c-primary); background: var(--c-primary-light); }
+.quiz-option.correct { border-color: var(--c-success); background: #f0fdf4; }
+.quiz-option.wrong { border-color: var(--c-error); background: #fef2f2; }
+.quiz-option:disabled { cursor: default; }
+.quiz-option-label {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--c-border);
+  color: var(--c-text);
+  font-weight: 800;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.quiz-option.correct .quiz-option-label { background: var(--c-success); color: white; }
+.quiz-option.wrong .quiz-option-label { background: var(--c-error); color: white; }
+
+.quiz-explanation {
+  margin-top: 16px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  line-height: 1.65;
+  display: none;
+}
+.quiz-explanation.show { display: block; }
+.quiz-explanation.correct-exp {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+.quiz-explanation.wrong-exp {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+.exp-label {
+  font-weight: 800;
+  font-size: 13px;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.quiz-footer { text-align: center; }
+
+/* ===== Result View ===== */
+.result-wrap {
+  text-align: center;
+  padding-top: 20px;
+}
+.result-emoji { font-size: 64px; margin-bottom: 12px; }
+.result-wrap h2 { font-size: 24px; font-weight: 800; margin-bottom: 16px; }
+.result-score {
+  background: var(--c-primary);
+  color: white;
+  border-radius: 20px;
+  padding: 16px 24px;
+  display: inline-block;
+  font-size: 36px;
+  font-weight: 900;
+  margin-bottom: 16px;
+  min-width: 140px;
+}
+.result-message {
+  font-size: 15px;
+  color: var(--c-text-sub);
+  margin-bottom: 20px;
+}
+
+.result-answers {
+  text-align: left;
+  background: var(--c-surface);
+  border-radius: var(--r);
+  padding: 16px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.result-answer-item {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--c-border);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.result-answer-item:last-child { border-bottom: none; }
+.ans-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.ans-text { flex: 1; }
+.ans-q { font-weight: 600; margin-bottom: 2px; }
+.ans-detail { color: var(--c-text-sub); }
+
+.result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ===== Buttons ===== */
+.btn-primary {
+  background: var(--c-primary);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  padding: 15px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity .15s, transform .12s;
+  width: 100%;
+}
+.btn-primary:active { opacity: .85; transform: scale(.98); }
+.btn-primary:disabled { opacity: .45; }
+
+.btn-secondary {
+  background: var(--c-surface);
+  color: var(--c-primary);
+  border: 2px solid var(--c-primary);
+  border-radius: 14px;
+  padding: 13px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity .15s, transform .12s;
+  width: 100%;
+}
+.btn-secondary:active { opacity: .75; transform: scale(.98); }
+
+/* ===== Safe area for notch devices ===== */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .view { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+}
+
+/* ===== Tablet/Desktop ===== */
+@media (min-width: 640px) {
+  #main { max-width: 480px; margin-left: auto; margin-right: auto; }
+  #header { max-width: 480px; left: 50%; transform: translateX(-50%); }
+}
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header id="header">
+      <button id="btn-back" class="btn-icon" style="visibility:hidden">&#8592;</button>
+      <span id="header-title">Claude Code 学習</span>
+      <div class="header-right"></div>
+    </header>
+    <main id="main">
+      <div id="view-home" class="view active">
+        <div class="home-hero">
+          <div class="hero-badge">🚀</div>
+          <h2>非エンジニアのための<br>Claude Code 完全攻略</h2>
+          <p class="hero-sub">隙間時間に読んで問題を解いて<br>Claude Codeを使い倒そう</p>
+        </div>
+        <div id="module-list" class="module-list"></div>
+        <div class="home-footer"><p>各モジュールは <strong>5〜10分</strong> で読めます</p></div>
+      </div>
+      <div id="view-lesson-list" class="view">
+        <div id="lesson-list-header" class="module-header"></div>
+        <div id="lesson-list" class="lesson-list"></div>
+        <div class="quiz-cta" id="quiz-cta" style="display:none">
+          <p>レッスンをすべて読んだら<br>クイズに挑戦しよう！</p>
+          <button id="btn-start-quiz" class="btn-primary">クイズに挑戦する →</button>
+        </div>
+      </div>
+      <div id="view-lesson" class="view">
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-bg"><div id="lesson-progress-fill" class="progress-bar-fill"></div></div>
+          <span id="lesson-progress-label" class="progress-label"></span>
+        </div>
+        <div id="lesson-content" class="lesson-content"></div>
+        <div class="lesson-nav">
+          <button id="btn-prev-lesson" class="btn-secondary">← 前へ</button>
+          <button id="btn-next-lesson" class="btn-primary">次へ →</button>
+        </div>
+      </div>
+      <div id="view-quiz" class="view">
+        <div class="quiz-header">
+          <div class="progress-bar-bg"><div id="quiz-progress-fill" class="progress-bar-fill"></div></div>
+          <span id="quiz-progress-label" class="progress-label"></span>
+        </div>
+        <div class="quiz-body">
+          <div id="quiz-question" class="quiz-question"></div>
+          <div id="quiz-options" class="quiz-options"></div>
+          <div id="quiz-explanation" class="quiz-explanation"></div>
+        </div>
+        <div class="quiz-footer">
+          <button id="btn-quiz-next" class="btn-primary" style="display:none">次の問題 →</button>
+        </div>
+      </div>
+      <div id="view-result" class="view">
+        <div class="result-wrap">
+          <div id="result-emoji" class="result-emoji">🎉</div>
+          <h2 id="result-title">クイズ完了！</h2>
+          <div id="result-score" class="result-score"></div>
+          <p id="result-message" class="result-message"></p>
+          <div class="result-answers" id="result-answers"></div>
+          <div class="result-actions">
+            <button id="btn-retry" class="btn-secondary">もう一度挑戦</button>
+            <button id="btn-home" class="btn-primary">ホームに戻る</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script>
+/* Module 1: Claude Codeとは何か */
+const MODULE1 = {
+  id: 'm1', title: 'Claude Codeとは何か', emoji: '🤖',
+  desc: 'AIエージェントの基本と可能性を理解しよう',
+  lessons: [
+    {
+      id: 'm1-l1', title: 'Claude Codeの概要',
+      readMin: 4,
+      html: `
+<h3>Claude Codeとは何か？</h3>
+<p>Claude Codeは、Anthropicが開発したAIエージェントです。ターミナル（黒い画面）から使うツールですが、<strong>指示はすべて日本語でOK</strong>です。</p>
+<div class="tip-box"><div class="tip-label">ポイント</div><p>「コードを書いて」「ファイルを整理して」「このバグを直して」——自然な言葉で指示するだけで動きます。</p></div>
+<h4>普通のAIチャットとの違い</h4>
+<p>ChatGPTやClaudeのWebサイトは<strong>会話するだけ</strong>です。Claude Codeは違います。</p>
+<ul>
+<li>ファイルを実際に読み書きできる</li>
+<li>コマンドを実行してアプリを動かせる</li>
+<li>GitHubへのアップロードを代行してくれる</li>
+<li>複数のファイルを同時に編集できる</li>
+</ul>
+<h4>非エンジニアにとっての意味</h4>
+<p>これまでアプリ開発には「プログラミングを数年学ぶ」必要がありました。Claude Codeがあれば、<strong>アイデアを日本語で伝えるだけで動くアプリが作れます</strong>。</p>
+<div class="example-box"><div class="tip-label">実例</div><p>「Excelのデータを読み込んで、グラフ付きのHTMLレポートを毎朝自動生成するツールを作って」→ これだけでClaudeが全部やってくれます。</p></div>
+<h4>使い始めるのに必要なもの</h4>
+<ul>
+<li>PC（Mac / Windows どちらでも可）</li>
+<li>Anthropicのアカウント（無料登録可）</li>
+<li>Claude Codeのインストール（公式サイトの手順通り）</li>
+</ul>
+<p>難しいセットアップはありません。インストールしたら<code>claude</code>とタイプするだけで起動します。</p>`
+    },
+    {
+      id: 'm1-l2', title: '効果的な指示の出し方',
+      readMin: 5,
+      html: `
+<h3>プロンプトの書き方が成果を決める</h3>
+<p>Claude Codeへの指示（プロンプト）の質で、アウトプットの質が大きく変わります。コツを覚えるだけで、作れるものが10倍になります。</p>
+<h4>悪い例 vs 良い例</h4>
+<div class="example-box"><div class="tip-label">悪い指示</div><p>「アプリを作って」</p></div>
+<div class="tip-box"><div class="tip-label">良い指示</div><p>「Pythonで、CSVファイルを読み込んで合計金額を計算し、results.txtに書き出すスクリプトを作って」</p></div>
+<h4>良いプロンプトの3要素</h4>
+<ol>
+<li><strong>目的</strong>：何を達成したいか</li>
+<li><strong>制約</strong>：言語・形式・条件など</li>
+<li><strong>出力形式</strong>：どんな形で結果が欲しいか</li>
+</ol>
+<h4>DSAの知識があると何が変わるか</h4>
+<p>データ構造とアルゴリズムを少し知っていると、<strong>より的確な指示</strong>が出せます。</p>
+<div class="example-box"><div class="tip-label">知識なし</div><p>「名前から素早く情報を取り出せるようにして」</p></div>
+<div class="tip-box"><div class="tip-label">知識あり</div><p>「ハッシュテーブルを使って名前から情報をO(1)で取り出せるようにして」</p></div>
+<p>後者の方が、Claudeが意図を正確に理解し、最適なコードを生成します。このコースでDSAを学ぶのはそのためです。</p>
+<h4>段階的に改善する方法</h4>
+<ul>
+<li>まず「動くもの」を作ってもらう</li>
+<li>「この部分をもっと速くして」と改善依頼</li>
+<li>「エラーハンドリングを追加して」と堅牢化</li>
+</ul>
+<div class="warn-box"><div class="tip-label">注意</div><p>一度に全部頼みすぎると混乱することがあります。小さく分けて依頼しましょう。</p></div>`
+    },
+    {
+      id: 'm1-l3', title: 'Claude Codeの学習法',
+      readMin: 4,
+      html: `
+<h3>非エンジニアがClaude Codeを「使い倒す」ロードマップ</h3>
+<p>このコースで学ぶ内容は、あるエンジニアがブログに書いた体験談がベースです。LeetCodeを150問解いてDSAを習得し、ChatGPT（Claude）を活用しながら乗り越えた方法です。</p>
+<h4>学習の3本柱</h4>
+<ol>
+<li><strong>データ構造とアルゴリズム（DSA）</strong><br>「なぜこの書き方か」を理解できるようになる</li>
+<li><strong>GitHub操作</strong><br>変更履歴を管理して、壊しても戻せる安心感を得る</li>
+<li><strong>Claude Codeとの対話</strong><br>詰まったらすぐ聞く習慣が挫折防止の最大の鍵</li>
+</ol>
+<h4>毎日の学習プラン</h4>
+<div class="table-wrap"><table class="lesson-table">
+<tr><th>時間</th><th>内容</th></tr>
+<tr><td>5分</td><td>このアプリでレッスンを1つ読む</td></tr>
+<tr><td>10分</td><td>LeetCodeで1問解く（Easyから）</td></tr>
+<tr><td>5分</td><td>Claudeに「この解法を改善して」と聞く</td></tr>
+</table></div>
+<p>1日20分×1ヶ月で「使える引き出し」が大幅に増えます。</p>
+<h4>挫折しないコツ</h4>
+<ul>
+<li>わからなくても<strong>すぐClaudeに聞く</strong>（恥ずかしくない）</li>
+<li>「5歳児に説明するように教えて」は魔法の言葉</li>
+<li>完璧に理解してから進もうとしない</li>
+<li>コードを書かなくていい——<strong>概念を掴むだけでOK</strong></li>
+</ul>
+<div class="tip-box"><div class="tip-label">このコースの使い方</div><p>各レッスンを読んだら、最後にクイズを解きましょう。全問正解するまで何度でも挑戦できます。隙間時間に1レッスンずつ進めるのがおすすめです。</p></div>`
+    }
+  ],
+  quiz: [
+    {
+      q: 'Claude Codeと普通のAIチャット（Claude.aiなど）の最大の違いは何ですか？',
+      options: ['応答速度が速い', 'ファイルの読み書きやコマンド実行ができる', '日本語に対応している', '無料で使える'],
+      correct: 1,
+      exp: 'Claude Codeはファイルの読み書き・コマンド実行・GitHub操作など、実際にPCを操作できる点が普通のAIチャットとの最大の違いです。'
+    },
+    {
+      q: '良いプロンプトに必要な3要素として正しいものはどれですか？',
+      options: ['長さ・速さ・正確さ', '目的・制約・出力形式', '言語・フレームワーク・バージョン', '敬語・具体性・短さ'],
+      correct: 1,
+      exp: '目的（何をしたいか）・制約（条件）・出力形式（どんな結果が欲しいか）の3つを含めると、Claudeが意図を正確に理解できます。'
+    },
+    {
+      q: 'DSA（データ構造とアルゴリズム）を学ぶとClaude Code活用においてどんなメリットがありますか？',
+      options: ['Claudeへの支払いが安くなる', 'より的確な指示が出せ、生成コードの意図を理解できる', 'タイピングが速くなる', 'エラーが一切出なくなる'],
+      correct: 1,
+      exp: 'DSAの知識があると「ハッシュテーブルでO(1)探索に」など具体的な指示が出せ、生成されたコードがなぜその実装なのかを理解して修正・改善できます。'
+    }
+  ]
+};
+/* Module 2: データ構造の基礎 */
+const MODULE2 = {
+  id: 'm2', title: 'データ構造の基礎', emoji: '📦',
+  desc: 'データの「入れ物」の種類と使い分けを理解しよう',
+  lessons: [
+    {
+      id: 'm2-l1', title: '配列とハッシュテーブル',
+      readMin: 5,
+      html: `
+<h3>データの入れ物——まず2つを覚えよう</h3>
+<p>プログラムはデータを処理します。そのデータをどんな「入れ物」に入れるかで、処理速度が劇的に変わります。</p>
+<h4>配列（Array）</h4>
+<p>配列は<strong>番号付きの棚</strong>です。1番・2番・3番…と順番にデータが並びます。</p>
+<ul>
+<li>番号（インデックス）で取り出す → 超高速 O(1)</li>
+<li>特定の値を探す → 全部見る必要あり O(n)</li>
+<li>用途：リスト表示、順番が大事なデータ</li>
+</ul>
+<div class="example-box"><div class="tip-label">生活の例</div><p>マンションの郵便受け。101号室・102号室…と番号で一発で取り出せます。</p></div>
+<h4>ハッシュテーブル（辞書・Dictionary）</h4>
+<p>ハッシュテーブルは<strong>名前引き辞書</strong>です。名前（キー）を渡すと、対応するデータが即座に返ってきます。</p>
+<ul>
+<li>キーで取り出す → 超高速 O(1)</li>
+<li>「存在するか」チェック → 超高速 O(1)</li>
+<li>用途：検索・集計・重複チェック</li>
+</ul>
+<div class="example-box"><div class="tip-label">生活の例</div><p>辞書（辞典）。「apple」と引けば「りんご」が一発で見つかります。全ページを読む必要なし。</p></div>
+<h4>Claude Codeへの応用</h4>
+<div class="tip-box"><div class="tip-label">プロンプト例</div><p>「ユーザーIDから名前を高速に取り出したいので、ハッシュテーブル（Pythonならdict）を使って実装して」</p></div>
+<div class="table-wrap"><table class="lesson-table">
+<tr><th>操作</th><th>配列</th><th>ハッシュテーブル</th></tr>
+<tr><td>番号で取得</td><td>O(1) ✅</td><td>—</td></tr>
+<tr><td>キーで取得</td><td>O(n)</td><td>O(1) ✅</td></tr>
+<tr><td>存在確認</td><td>O(n)</td><td>O(1) ✅</td></tr>
+<tr><td>追加</td><td>O(1)</td><td>O(1)</td></tr>
+</table></div>
+<p><strong>O(1)</strong>は「データ量に関係なく一定時間」、<strong>O(n)</strong>は「データ量に比例して時間がかかる」という意味です。</p>`
+    },
+    {
+      id: 'm2-l2', title: 'スタックとキュー',
+      readMin: 4,
+      html: `
+<h3>順番を管理するデータ構造</h3>
+<p>スタックとキューは、データを「どの順番で取り出すか」を管理する入れ物です。</p>
+<h4>スタック（Stack）— LIFO</h4>
+<p><strong>Last In, First Out</strong>——最後に入れたものを最初に取り出します。</p>
+<div class="example-box"><div class="tip-label">生活の例</div><p>皿の積み重ね。一番上（最後に置いた）皿から取ります。</p></div>
+<ul>
+<li>push：一番上に追加</li>
+<li>pop：一番上から取り出す</li>
+<li>用途：「元に戻す(Undo)」機能、DFS（後述）、括弧の対応チェック</li>
+</ul>
+<h4>キュー（Queue）— FIFO</h4>
+<p><strong>First In, First Out</strong>——最初に入れたものを最初に取り出します。</p>
+<div class="example-box"><div class="tip-label">生活の例</div><p>コンビニのレジ待ち。先に並んだ人から順番に対応されます。</p></div>
+<ul>
+<li>enqueue：列の末尾に追加</li>
+<li>dequeue：列の先頭から取り出す</li>
+<li>用途：タスク処理、BFS（後述）、印刷ジョブ管理</li>
+</ul>
+<h4>Claude Codeへの応用</h4>
+<div class="tip-box"><div class="tip-label">プロンプト例</div><p>「ユーザーからの処理リクエストを順番に処理したいので、キューを使ってFIFO方式で実装して」</p></div>
+<div class="warn-box"><div class="tip-label">よくある間違い</div><p>スタックとキューを混同しないように。スタックは「皿の積み重ね（上から）」、キューは「行列（前から）」と覚えましょう。</p></div>`
+    },
+    {
+      id: 'm2-l3', title: 'ヒープ・木・Union-Find',
+      readMin: 6,
+      html: `
+<h3>応用データ構造の3つ</h3>
+<p>やや高度ですが、Claude Codeへの指示に活かせる3つを紹介します。「何のため」だけ覚えれば十分です。</p>
+<h4>ヒープ（優先度付きキュー）</h4>
+<p>「一番優先度が高いもの」を常に素早く取り出せる構造です。</p>
+<ul>
+<li>最小値・最大値の取得 → O(log n)</li>
+<li>用途：タスクの優先処理、ダイクストラ法（最短経路）</li>
+</ul>
+<div class="example-box"><div class="tip-label">生活の例</div><p>病院のトリアージ。症状が重い患者から順番に診察します。</p></div>
+<div class="tip-box"><div class="tip-label">プロンプト例</div><p>「緊急度の高いタスクから処理したいので、優先度付きキュー（ヒープ）を使って」</p></div>
+<h4>木構造（Tree）</h4>
+<p>階層的なデータを表現する構造。親ノードから子ノードが枝分かれします。</p>
+<ul>
+<li>用途：フォルダ構造、組織図、HTMLのDOM、検索木（BST）</li>
+<li>探索 → O(log n)（二分探索木の場合）</li>
+</ul>
+<div class="example-box"><div class="tip-label">生活の例</div><p>会社の組織図。社長→部長→課長→社員と階層があります。</p></div>
+<h4>Union-Find（併合集合）</h4>
+<p>「AとBは同じグループか？」を高速に判定する構造です。</p>
+<ul>
+<li>グループの統合・判定 → ほぼO(1)</li>
+<li>用途：ネットワーク連結確認、グループ管理</li>
+</ul>
+<div class="example-box"><div class="tip-label">生活の例</div><p>SNSの「友達の友達」判定。AさんとBさんが同じコミュニティにいるか判定します。</p></div>
+<div class="tip-box"><div class="tip-label">まとめ</div><p>どれを使うか迷ったら「優先度なら→ヒープ」「階層なら→木」「グループ判定なら→Union-Find」と覚えておきましょう。</p></div>`
+    }
+  ],
+  quiz: [
+    {
+      q: 'ハッシュテーブル（辞書）の最大の特徴は何ですか？',
+      options: ['データを番号順に並べられる', 'キーで値をO(1)の速さで取り出せる', '自動的にデータが並び替えられる', 'メモリ消費が最も少ない'],
+      correct: 1,
+      exp: 'ハッシュテーブルはキーと値のペアを管理し、キーを指定するとO(1)（データ量に関係なく一定時間）で値を取り出せます。辞書を引くようなイメージです。'
+    },
+    {
+      q: 'スタックの動作を正しく説明しているものはどれですか？',
+      options: ['先に入れたデータを先に取り出す（FIFO）', '最後に入れたデータを最初に取り出す（LIFO）', 'ランダムな順序でデータを取り出す', '優先度が高いデータを先に取り出す'],
+      correct: 1,
+      exp: 'スタックはLIFO（Last In, First Out）です。皿の積み重ねのように、最後に置いたものから取り出します。UnDo機能などに使われます。'
+    },
+    {
+      q: '病院のトリアージ（重症患者を優先）のような処理に最適なデータ構造はどれですか？',
+      options: ['配列', 'スタック', 'ヒープ（優先度付きキュー）', 'ハッシュテーブル'],
+      correct: 2,
+      exp: 'ヒープ（優先度付きキュー）は常に最も優先度の高い要素を素早く取り出せます。タスクの優先処理や最短経路アルゴリズムで活躍します。'
+    },
+    {
+      q: 'O(1)とO(n)の違いを正しく説明しているものはどれですか？',
+      options: ['O(1)は1回で終わる、O(n)はn回繰り返す', 'O(1)はデータ量に関わらず一定時間、O(n)はデータ量に比例して時間がかかる', 'O(1)は遅くてO(n)は速い', '同じ意味で使い方が違うだけ'],
+      correct: 1,
+      exp: 'O(1)はデータが1000件でも100万件でも同じ時間（定数時間）。O(n)はデータが2倍になると処理時間も2倍になります。これを「計算量」と呼びます。'
+    }
+  ]
+};
+/* Module 3: アルゴリズムの基礎 */
+const MODULE3 = {
+  id: 'm3', title: 'アルゴリズムの基礎', emoji: '🗺️',
+  desc: 'DFS・BFS・最短経路・二分探索を直感で理解しよう',
+  lessons: [
+    {
+      id: 'm3-l1', title: 'DFSとBFS——探索の2大手法',
+      readMin: 6,
+      html: `
+<h3>「探す」ときのアルゴリズム</h3>
+<p>グラフや木の中からデータを探すとき、「どの順番で調べるか」がDFSとBFSです。</p>
+<h4>DFS（深さ優先探索）</h4>
+<p><strong>Depth-First Search</strong>——一本道を突き進み、行き止まりになったら戻ります。</p>
+<div class="example-box"><div class="tip-label">迷路の例</div><p>右の壁に沿って進み続ける方法。ゴールを見つけるか行き止まりになるまで突き進む。</p></div>
+<ul>
+<li>実装：<strong>スタック</strong>または<strong>再帰関数</strong>を使う</li>
+<li>用途：経路の全探索、連結成分の確認、トポロジカルソート</li>
+<li>特徴：深く潜る。メモリ効率が良いことが多い</li>
+</ul>
+<h4>BFS（幅優先探索）</h4>
+<p><strong>Breadth-First Search</strong>——近い順に広がりながら探します。</p>
+<div class="example-box"><div class="tip-label">迷路の例</div><p>スタート地点から「1歩で行ける全箇所」→「2歩で行ける全箇所」→と波紋のように広がる。</p></div>
+<ul>
+<li>実装：<strong>キュー</strong>を使う</li>
+<li>用途：<strong>最短経路（重みなし）</strong>、SNSの「知り合いかも」機能</li>
+<li>特徴：最短ステップ数を保証できる</li>
+</ul>
+<h4>DFS vs BFS の使い分け</h4>
+<div class="table-wrap"><table class="lesson-table">
+<tr><th>やりたいこと</th><th>選択</th></tr>
+<tr><td>経路が存在するか確認したい</td><td>DFS</td></tr>
+<tr><td>最短ステップ数を求めたい</td><td>BFS</td></tr>
+<tr><td>全パターンを列挙したい</td><td>DFS</td></tr>
+<tr><td>階層が浅い探索</td><td>BFS</td></tr>
+</table></div>
+<div class="tip-box"><div class="tip-label">Claude Codeへの応用</div><p>「フォルダを再帰的にすべて探索してください」→ DFS<br>「このノードから最短ステップで到達できる経路を求めて」→ BFS</p></div>`
+    },
+    {
+      id: 'm3-l2', title: '最短経路アルゴリズム',
+      readMin: 6,
+      html: `
+<h3>地図アプリの裏側——最短経路の求め方</h3>
+<p>GoogleマップやYahoo!カーナビが「最短ルート」を計算するのに使っているのが最短経路アルゴリズムです。</p>
+<h4>ダイクストラ法（Dijkstra）</h4>
+<p>重みあり（距離・コスト）のグラフで<strong>1点から全頂点への最短経路</strong>を求めます。</p>
+<ul>
+<li>使うデータ構造：<strong>ヒープ（優先度付きキュー）</strong></li>
+<li>条件：<strong>負の重みがないこと</strong></li>
+<li>時間計算量：O((V+E) log V)</li>
+<li>用途：カーナビ、ゲームのAI経路探索</li>
+</ul>
+<div class="example-box"><div class="tip-label">仕組み</div><p>「今わかっている中で最もコストが低い地点」を次の探索対象に選び続けます。「近い順に確定させる」イメージです。</p></div>
+<h4>ベルマン・フォード法</h4>
+<p><strong>負の重みがあっても使える</strong>最短経路アルゴリズムです。</p>
+<ul>
+<li>時間計算量：O(VE)——ダイクストラより遅い</li>
+<li>用途：為替レート計算、負コストが存在する問題</li>
+<li>負の閉路（ループ）も検出できる</li>
+</ul>
+<h4>ワーシャル・フロイド法</h4>
+<p><strong>全頂点間の最短経路</strong>をまとめて求めます。</p>
+<ul>
+<li>時間計算量：O(V³)——頂点数が少ないときに使う</li>
+<li>用途：小規模ネットワークの全経路計算</li>
+</ul>
+<h4>使い分けまとめ</h4>
+<div class="table-wrap"><table class="lesson-table">
+<tr><th>状況</th><th>アルゴリズム</th></tr>
+<tr><td>1点→全点、負なし</td><td>ダイクストラ法</td></tr>
+<tr><td>1点→全点、負あり</td><td>ベルマン・フォード法</td></tr>
+<tr><td>全点→全点</td><td>ワーシャル・フロイド法</td></tr>
+<tr><td>重みなし最短経路</td><td>BFS</td></tr>
+</table></div>
+<div class="tip-box"><div class="tip-label">Claude Codeへの応用</div><p>「駅間の所要時間データから最短ルートを計算して。ダイクストラ法でヒープを使って実装して」</p></div>`
+    },
+    {
+      id: 'm3-l3', title: '二分探索と貪欲法',
+      readMin: 5,
+      html: `
+<h3>シンプルだが強力な2つのアルゴリズム</h3>
+<h4>二分探索（Binary Search）</h4>
+<p><strong>ソートされたデータ</strong>を、毎回半分に絞り込みながら探します。</p>
+<div class="example-box"><div class="tip-label">辞書の例</div><p>「す」で始まる単語を探すとき、真ん中を開いて「前か後か」を判断し、どんどん範囲を絞る——これが二分探索です。</p></div>
+<ul>
+<li>時間計算量：O(log n)——100万件でも20回以内に見つかる</li>
+<li>条件：データが<strong>ソート済み</strong>であること</li>
+<li>用途：ソート済みリストの検索、「条件を満たす最小値」の特定</li>
+</ul>
+<div class="tip-box"><div class="tip-label">威力のイメージ</div><p>10億件のデータでも、二分探索なら<strong>30回</strong>の比較で見つかります（log₂(10億) ≈ 30）。線形探索なら最悪10億回です。</p></div>
+<h4>貪欲法（Greedy Algorithm）</h4>
+<p><strong>その瞬間に最善の選択</strong>を繰り返すことで全体の最適解を求める手法です。</p>
+<div class="example-box"><div class="tip-label">コイン両替の例</div><p>500円を最少枚数のコインで表すには？→ 常に「使える最大コイン」を選ぶ。500→100→50→10...と貪欲に選ぶと最少枚数になります。</p></div>
+<ul>
+<li>用途：スケジューリング最適化、ハフマン符号化、クラスカル法（最小全域木）</li>
+<li>注意：<strong>常に最適解を保証しない</strong>場合もある</li>
+</ul>
+<h4>Claude Codeへの応用</h4>
+<div class="tip-box"><div class="tip-label">プロンプト例</div><p>「ソート済みのユーザーリストから特定IDを高速検索したいので、二分探索で実装して」<br>「会議室の予約を最大数こなすスケジューリングを、貪欲法で解いて」</p></div>
+<div class="warn-box"><div class="tip-label">貪欲法の落とし穴</div><p>局所最適（目先の最善）が全体最適にならないケースがあります。確信がないときはClaudeに「貪欲法で最適解が保証されますか？」と確認しましょう。</p></div>`
+    }
+  ],
+  quiz: [
+    {
+      q: 'BFS（幅優先探索）が特に得意なことは何ですか？',
+      options: ['全パターンの列挙', '重みありグラフの最短経路', '重みなしグラフの最短ステップ数', 'データのソート'],
+      correct: 2,
+      exp: 'BFSは近い順（ステップ数の少ない順）に探索するため、重みなしグラフでの最短ステップ数を求めるのに最適です。キューを使って実装します。'
+    },
+    {
+      q: 'ダイクストラ法を使う際の必須条件は何ですか？',
+      options: ['グラフが無向グラフであること', '頂点数が100以下であること', '負の重みがないこと', 'ソート済みであること'],
+      correct: 2,
+      exp: 'ダイクストラ法は負の重みがある場合は正しく動作しません。負の重みがある場合はベルマン・フォード法を使います。'
+    },
+    {
+      q: '二分探索を使うための必須条件は何ですか？',
+      options: ['データがハッシュテーブルに入っていること', 'データがソート（並び替え）済みであること', 'データが100件以下であること', 'データが数値のみであること'],
+      correct: 1,
+      exp: '二分探索は「中央と比較して前後どちらに絞るか」を繰り返すため、データがソートされている必要があります。O(log n)という非常に高速な探索が可能です。'
+    },
+    {
+      q: '貪欲法について正しい説明はどれですか？',
+      options: ['常に全体最適な解を保証する', '実行速度が最も遅いアルゴリズム', 'その瞬間の最善を繰り返す手法で、常に最適とは限らない', '再帰が必須のアルゴリズム'],
+      correct: 2,
+      exp: '貪欲法は「その瞬間の最善（局所最適）」を選び続けます。コイン問題のように最適解になる場合もありますが、必ずしも全体最適を保証しません。'
+    }
+  ]
+};
+/* Module 4: GitHubの基礎 */
+const MODULE4 = {
+  id: 'm4', title: 'GitHubの基礎', emoji: '🐙',
+  desc: '変更履歴を管理して「壊しても怖くない」環境を作ろう',
+  lessons: [
+    {
+      id: 'm4-l1', title: 'Gitとは何か',
+      readMin: 5,
+      html: `
+<h3>「セーブポイント」を自動で作るシステム</h3>
+<p>Gitとは<strong>ファイルの変更履歴を管理するシステム</strong>です。RPGゲームのセーブポイントと同じです——いつでも過去の状態に戻れます。</p>
+<h4>なぜ必要か</h4>
+<div class="warn-box"><div class="tip-label">よくある悲劇</div><p>「動いていたのに、ちょっと修正したら壊れた。でももう戻せない…」</p></div>
+<p>Gitがあれば<strong>5秒で元に戻せます</strong>。これが非エンジニアにとって最大の安心材料です。</p>
+<h4>基本の用語</h4>
+<div class="table-wrap"><table class="lesson-table">
+<tr><th>用語</th><th>意味</th><th>例え</th></tr>
+<tr><td>リポジトリ</td><td>プロジェクトの管理単位</td><td>プロジェクトフォルダ</td></tr>
+<tr><td>コミット</td><td>変更を記録する（セーブ）</td><td>ゲームのセーブ</td></tr>
+<tr><td>ブランチ</td><td>変更の作業コピー</td><td>下書きノート</td></tr>
+<tr><td>マージ</td><td>ブランチを本体に統合する</td><td>下書きを清書に反映</td></tr>
+<tr><td>プッシュ</td><td>ローカルをクラウドに送る</td><td>クラウドバックアップ</td></tr>
+<tr><td>プル</td><td>クラウドからローカルに取得</td><td>クラウドから最新版を取得</td></tr>
+</table></div>
+<h4>GitとGitHubの違い</h4>
+<ul>
+<li><strong>Git</strong>：PC上で動くバージョン管理ツール（ローカル）</li>
+<li><strong>GitHub</strong>：Gitのリポジトリをクラウドで管理するサービス</li>
+</ul>
+<div class="tip-box"><div class="tip-label">ポイント</div><p>Gitはツール、GitHubはそのツールを使ったクラウドサービスです。Google DocsのようにPCとクラウドが連携します。</p></div>`
+    },
+    {
+      id: 'm4-l2', title: 'GitHub Desktop で基本操作をマスター',
+      readMin: 5,
+      html: `
+<h3>コマンド不要！GUI で完全マスター</h3>
+<p><strong>GitHub Desktop</strong>を使えば、黒い画面（ターミナル）を一切使わずにGit操作ができます。非エンジニアに最もおすすめの方法です。</p>
+<h4>セットアップ（30分で完了）</h4>
+<ol>
+<li>GitHubアカウントを作成（無料）</li>
+<li>GitHub Desktopをダウンロード・インストール</li>
+<li>GitHubアカウントでサインイン</li>
+</ol>
+<h4>基本の流れ（これだけ覚えればOK）</h4>
+<div class="table-wrap"><table class="lesson-table">
+<tr><th>操作</th><th>意味</th><th>GitHub Desktopでの操作</th></tr>
+<tr><td>Clone</td><td>クラウドからローカルへコピー</td><td>「Clone Repository」ボタン</td></tr>
+<tr><td>Commit</td><td>変更をセーブ</td><td>変更内容を確認→「Commit to main」</td></tr>
+<tr><td>Push</td><td>クラウドに送信</td><td>「Push origin」ボタン</td></tr>
+<tr><td>Pull</td><td>最新版を取得</td><td>「Fetch origin」→「Pull」</td></tr>
+</table></div>
+<h4>ブランチを使った安全な実験</h4>
+<p>新機能を試すとき、<strong>main（本体）を触らずブランチ（分岐）で作業</strong>します。うまくいったらマージ、失敗したらブランチごと削除できます。</p>
+<div class="example-box"><div class="tip-label">手順</div><p>GitHub Desktopで「New Branch」→ 作業 → Commit → Push → Pull Request作成 → main にマージ</p></div>
+<div class="tip-box"><div class="tip-label">命名規則</div><p>ブランチ名はわかりやすく。例：<code>feature/add-login</code>、<code>fix/typo-header</code>、<code>test/new-design</code></p></div>`
+    },
+    {
+      id: 'm4-l3', title: 'Claude CodeとGitHubを連携する',
+      readMin: 4,
+      html: `
+<h3>Claude Codeに Git 操作を任せる</h3>
+<p>Claude CodeはGitHub操作を完全に代行できます。コマンドを覚える必要はありません。日本語で指示するだけです。</p>
+<h4>Claude Codeに任せられること</h4>
+<ul>
+<li>「変更をコミットして」→ 適切なメッセージで自動コミット</li>
+<li>「GitHubにプッシュして」→ プッシュ実行</li>
+<li>「新しいブランチを作って feature/search-function という名前で」→ 作成&切り替え</li>
+<li>「前のコミットに戻して」→ git revert を実行</li>
+<li>「このブランチをmainにマージして」→ マージ実行</li>
+</ul>
+<h4>実践ワークフロー</h4>
+<ol>
+<li>新機能を作るとき：「新しいブランチを feature/XXX という名前で作成して」</li>
+<li>Claudeが機能を実装</li>
+<li>「動作確認のポイントを教えて」→ テスト</li>
+<li>「変更をコミットしてGitHubにプッシュして」</li>
+<li>「プルリクエストを作って」（GitHub上でマージ）</li>
+</ol>
+<div class="tip-box"><div class="tip-label">バージョン管理の威力</div><p>Claude Codeが間違ったコードを生成しても大丈夫。「git stash」や「前のコミットに戻して」と言えばリセットできます。</p></div>
+<div class="example-box"><div class="tip-label">実際のプロンプト例</div><p>「今の変更を 'ログイン機能を追加' というメッセージでコミットして、feature/loginブランチにプッシュして」</p></div>
+<div class="warn-box"><div class="tip-label">mainブランチへの直接プッシュは注意</div><p>本番環境のコードが入っているmainへの直接プッシュは避けましょう。必ずブランチで作業してプルリクエスト経由でマージするのが安全です。</p></div>`
+    }
+  ],
+  quiz: [
+    {
+      q: 'Gitのコミットを一言で説明するなら何ですか？',
+      options: ['ファイルをクラウドに送ること', '変更をローカルに記録・セーブすること', '他人のコードをコピーすること', 'ブランチを削除すること'],
+      correct: 1,
+      exp: 'コミットは変更を「ローカルのリポジトリに記録・セーブする」操作です。プッシュはそのコミットをクラウド（GitHub）に送る操作です。'
+    },
+    {
+      q: 'GitとGitHubの違いとして正しいのはどれですか？',
+      options: ['GitはApple製、GitHubはMicrosoft製のツール', 'Gitはローカルのバージョン管理ツール、GitHubはクラウドでリポジトリを管理するサービス', '両方まったく同じツール', 'GitはWindowsのみ、GitHubはMacのみ'],
+      correct: 1,
+      exp: 'Gitはローカル（PC上）でバージョン管理を行うツール。GitHubはGitリポジトリをクラウド上で管理・共有するサービスです。'
+    },
+    {
+      q: '新機能開発時にブランチを使う最大のメリットは何ですか？',
+      options: ['開発速度が上がる', 'main（本体）に影響を与えずに安全に実験できる', 'コードの行数が減る', 'GitHubの料金が安くなる'],
+      correct: 1,
+      exp: 'ブランチはmainのコピーで作業できる「下書きノート」です。失敗してもブランチごと削除すれば本体は無傷。安全に実験できます。'
+    },
+    {
+      q: 'Claude CodeへのGit操作の指示として最も自然で正しいものはどれですか？',
+      options: ['git add . && git commit -m "fix" && git push origin main', '変更をコミットしてGitHubにプッシュして', 'sudo git --force push', 'GitHub Desktopを開いてください'],
+      correct: 1,
+      exp: 'Claude Codeは自然言語での指示を理解し、適切なGitコマンドを実行してくれます。コマンドを覚える必要はありません。'
+    }
+  ]
+};
+/* Module 5: 実践・まとめ */
+const MODULE5 = {
+  id: 'm5', title: '実践・Claude Codeを使い倒す', emoji: '⚡',
+  desc: 'DSA・GitHub・Claude Codeを組み合わせた実践テクニック',
+  lessons: [
+    {
+      id: 'm5-l1', title: '効果的なプロンプトパターン集',
+      readMin: 6,
+      html: `
+<h3>すぐに使えるプロンプトテンプレート</h3>
+<p>DSAとGitHubの知識を活かした、実際に使えるプロンプトパターンを紹介します。</p>
+<h4>データ構造を指定するパターン</h4>
+<div class="tip-box"><div class="tip-label">高速検索</div><p>「商品名から価格を高速に取得したい。ハッシュテーブル（Pythonのdict）を使ってO(1)検索で実装して」</p></div>
+<div class="tip-box"><div class="tip-label">優先処理</div><p>「タスクを優先度順に処理したい。ヒープを使って優先度付きキューで実装して」</p></div>
+<div class="tip-box"><div class="tip-label">順番管理</div><p>「リクエストを受け取った順に処理したい。キュー（FIFO）で実装して」</p></div>
+<h4>アルゴリズムを指定するパターン</h4>
+<div class="tip-box"><div class="tip-label">最短経路</div><p>「都市間の距離データから最短ルートを計算して。ダイクストラ法でヒープを使い、O((V+E)logV)で実装して」</p></div>
+<div class="tip-box"><div class="tip-label">高速検索</div><p>「ソート済みの社員リストから名前を検索したい。二分探索でO(log n)で実装して」</p></div>
+<h4>コード改善パターン</h4>
+<div class="tip-box"><div class="tip-label">改善依頼</div><p>「このコードの時間計算量を教えて、さらに最適化できる場合は改善して」</p></div>
+<div class="tip-box"><div class="tip-label">解説依頼</div><p>「このコードを非エンジニアにもわかるように、1行ずつ日本語で説明して」</p></div>
+<h4>デバッグパターン</h4>
+<div class="tip-box"><div class="tip-label">バグ修正</div><p>「このエラーメッセージ: [エラー内容] が出ています。原因と修正方法を教えて」</p></div>
+<div class="tip-box"><div class="tip-label">テスト</div><p>「このコードのエッジケース（空リスト・最大値・最小値・null）をテストするコードを書いて」</p></div>
+<h4>GitHub連携パターン</h4>
+<div class="tip-box"><div class="tip-label">安全なリリース</div><p>「feature/new-dashboardブランチで開発して。動作確認できたら変更をコミット・プッシュして、プルリクエストを作って」</p></div>`
+    },
+    {
+      id: 'm5-l2', title: 'LeetCode × Claude Code 学習法',
+      readMin: 5,
+      html: `
+<h3>ブログ著者が実践した「腹落ち」学習法</h3>
+<p>このコースのベースとなったブログの著者は、<strong>LeetCodeを150問解く</strong>ことでDSAを完全に自分のものにしました。その方法をClaude Code活用に最適化した形で紹介します。</p>
+<h4>ステップ1：理論をざっくり理解する</h4>
+<ul>
+<li><strong>CodingInterviewCat</strong>：図解が豊富でLeetCode問題に連動。英語だがClaudeに「日本語で解説して」と頼めばOK</li>
+<li><strong>VisuAlgo</strong>（無料）：アルゴリズムの動作をアニメーションで見られる</li>
+<li><strong>「なっとく！アルゴリズム」</strong>（本）：イラスト満載の入門書として最強</li>
+</ul>
+<h4>ステップ2：LeetCodeで実践</h4>
+<ol>
+<li>Easyの問題を開く</li>
+<li>まず<strong>自分で5〜10分考える</strong></li>
+<li>詰まったらClaudeに「この問題のヒントをください（答えは言わないで）」</li>
+<li>解けたらClaudeに「このコードをより効率的にして」</li>
+<li>「この解法の時間計算量と空間計算量を教えて」</li>
+</ol>
+<div class="tip-box"><div class="tip-label">毎日の目標</div><p>1日1〜3問。量より継続。1ヶ月で30〜90問解くと「解法のパターン」が見えてきます。</p></div>
+<h4>Claude Codeへの繋げ方</h4>
+<p>LeetCodeで学んだパターンを、実際のプロジェクトで使います：</p>
+<ul>
+<li>「二分探索のパターン、覚えたので実際のDBクエリ最適化に使いたい」</li>
+<li>「BFSをマスターしたので、社内のフォルダ構造をグラフとして探索するツールを作って」</li>
+</ul>
+<h4>挫折しないための3か条</h4>
+<ol>
+<li><strong>わからなくてもすぐClaudeに聞く</strong>——詰まり続けることが挫折の原因</li>
+<li><strong>解けなくて当然と思う</strong>——ブログ著者も何度も挫折した</li>
+<li><strong>「概念がわかった」だけで前進する</strong>——実装できなくてもOK</li>
+</ol>`
+    },
+    {
+      id: 'm5-l3', title: '30日間ロードマップ',
+      readMin: 4,
+      html: `
+<h3>1ヶ月でClaude Codeを「コントロールできる」状態に</h3>
+<p>「Claudeに任せる」ではなく<strong>「Claudeを指示してコントロールする」</strong>状態を目指す30日ロードマップです。</p>
+<h4>第1週：環境構築と基礎理解</h4>
+<ul>
+<li>Claude Codeをインストールして起動できる</li>
+<li>GitHubアカウント作成・GitHub Desktopインストール</li>
+<li>最初のリポジトリを作成してファイルをプッシュ</li>
+<li>このコースのモジュール1〜2を完了</li>
+</ul>
+<h4>第2週：データ構造と基本プロンプト</h4>
+<ul>
+<li>このコースのモジュール3〜4を完了</li>
+<li>LeetCode Easy 10問に挑戦（配列・ハッシュテーブル中心）</li>
+<li>Claude Codeで簡単なスクリプトを1つ作る</li>
+<li>作ったスクリプトをGitHubにプッシュ</li>
+</ul>
+<h4>第3週：アルゴリズムと実践</h4>
+<ul>
+<li>このコースのモジュール5を完了</li>
+<li>LeetCode Easy 15問（DFS/BFS・二分探索中心）</li>
+<li>Claude Codeでデータ構造を指定したプロンプトを使う</li>
+<li>ブランチを使った開発フローを1回実践</li>
+</ul>
+<h4>第4週：応用と習慣化</h4>
+<ul>
+<li>LeetCode Medium 5問に挑戦</li>
+<li>実務・日常の困りごとをClaude Codeで自動化する</li>
+<li>GitHubにプロジェクトを3つ以上管理する習慣</li>
+<li>Claudeへのプロンプトを「DSA用語入り」にアップグレード</li>
+</ul>
+<div class="tip-box"><div class="tip-label">1ヶ月後の状態</div><p>「Claudeが生成したコードを見て、なぜその実装なのか大体わかる」「的確な指示でほぼ一発でいいコードが生成される」「GitHubでプロジェクトを安全に管理できる」</p></div>
+<div class="example-box"><div class="tip-label">3ヶ月後の状態</div><p>LeetCode 100問突破、DSAの主要パターンを把握、Claude Codeで業務自動化ツールを複数作成、GitHubでオープンソースプロジェクトに参加できるレベル</p></div>`
+    }
+  ],
+  quiz: [
+    {
+      q: 'LeetCodeで問題が解けなかったとき、最も効果的な対処法はどれですか？',
+      options: ['諦めて次の問題に進む', '答えを見て丸暗記する', 'Claudeに「ヒントをください（答えは言わないで）」と聞く', '1時間以上悩み続ける'],
+      correct: 2,
+      exp: 'すぐClaudeにヒントを求めることが挫折防止の最大の鍵です。「答えは言わないで」と添えることで考える力も養えます。丸暗記より思考プロセスが大切です。'
+    },
+    {
+      q: 'Claude Codeを「使い倒す」状態として正しいのはどれですか？',
+      options: ['「Claudeに全部任せて何もしない」状態', '「Claudeを的確に指示してコントロールする」状態', '「コマンドを全部暗記した」状態', '「Claudeなしでもコードが書ける」状態'],
+      correct: 1,
+      exp: 'DSAとGitHubを学ぶ目的は「Claudeに丸投げ」ではなく「Claudeを的確に指示してコントロールする」ことです。知識があると指示が的確になり、生成コードを理解・改善できます。'
+    },
+    {
+      q: '次の指示の中で、DSAの知識を活かした最も優れたプロンプトはどれですか？',
+      options: ['「名前から情報を取り出せるようにして」', '「辞書を使ってください」', '「ハッシュテーブルを使って名前からO(1)で情報を取り出せるようにして」', '「なるべく速くして」'],
+      correct: 2,
+      exp: 'データ構造（ハッシュテーブル）と計算量（O(1)）を明示したプロンプトが最も具体的です。Claudeが意図を正確に理解し、最適なコードを一発で生成できます。'
+    }
+  ]
+};
+/* content.js — モジュールをまとめて COURSES 配列に */
+/* 各モジュールファイル（module1〜5.js）が先に読み込まれている前提 */
+const COURSES = [MODULE1, MODULE2, MODULE3, MODULE4, MODULE5];
+/* app.js — SPA ルーティング・クイズロジック・進捗管理 */
+
+const STORAGE_KEY = 'ccl_progress_v1';
+
+// ===== State =====
+let state = {
+  currentModule: null,
+  currentLessonIdx: 0,
+  quizAnswers: [],
+  quizCurrentIdx: 0,
+};
+
+// ===== Progress helpers =====
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+}
+function saveProgress(p) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
+}
+function markLessonDone(moduleId, lessonId) {
+  const p = loadProgress();
+  if (!p[moduleId]) p[moduleId] = { lessons: [], quizScore: null };
+  if (!p[moduleId].lessons.includes(lessonId)) p[moduleId].lessons.push(lessonId);
+  saveProgress(p);
+}
+function saveQuizScore(moduleId, score, total) {
+  const p = loadProgress();
+  if (!p[moduleId]) p[moduleId] = { lessons: [], quizScore: null };
+  p[moduleId].quizScore = { score, total };
+  saveProgress(p);
+}
+function getModuleProgress(moduleId) {
+  const p = loadProgress();
+  return p[moduleId] || { lessons: [], quizScore: null };
+}
+
+// ===== View switching =====
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function setHeader(title, showBack) {
+  document.getElementById('header-title').textContent = title;
+  const btn = document.getElementById('btn-back');
+  btn.style.visibility = showBack ? 'visible' : 'hidden';
+}
+
+// ===== Home =====
+function renderHome() {
+  setHeader('Claude Code 学習', false);
+  showView('view-home');
+  const container = document.getElementById('module-list');
+  const progress = loadProgress();
+  container.innerHTML = COURSES.map((m, i) => {
+    const mp = progress[m.id] || { lessons: [], quizScore: null };
+    const total = m.lessons.length;
+    const done = mp.lessons.length;
+    const pct = total ? Math.round(done / total * 100) : 0;
+    const quizDone = mp.quizScore ? ` • クイズ ${mp.quizScore.score}/${mp.quizScore.total}点` : '';
+    return `
+<div class="module-card accent-${i}" onclick="openModule('${m.id}')">
+  <div class="module-emoji">${m.emoji}</div>
+  <div class="module-card-body">
+    <div class="module-card-title">${m.title}</div>
+    <div class="module-card-desc">${m.desc}</div>
+    <div class="module-progress-bar"><div class="module-progress-fill" style="width:${pct}%"></div></div>
+    <span class="module-progress-label">${done}/${total} レッスン完了${quizDone}</span>
+  </div>
+  <div class="module-arrow">›</div>
+</div>`;
+  }).join('');
+}
+
+// ===== Lesson List =====
+function openModule(moduleId) {
+  const m = COURSES.find(c => c.id === moduleId);
+  if (!m) return;
+  state.currentModule = m;
+  renderLessonList(m);
+}
+
+function renderLessonList(m) {
+  setHeader(m.title, true);
+  document.getElementById('btn-back').onclick = renderHome;
+  showView('view-lesson-list');
+
+  document.getElementById('lesson-list-header').innerHTML = `
+<div class="m-emoji">${m.emoji}</div>
+<h2>${m.title}</h2>
+<p>${m.desc}</p>`;
+
+  const mp = getModuleProgress(m.id);
+  const list = document.getElementById('lesson-list');
+  list.innerHTML = m.lessons.map((l, i) => {
+    const done = mp.lessons.includes(l.id);
+    return `
+<div class="lesson-item ${done ? 'done' : ''}" onclick="openLesson(${i})">
+  <div class="lesson-num">${done ? '✓' : i + 1}</div>
+  <div>
+    <div class="lesson-item-title">${l.title}</div>
+    <div class="lesson-item-meta">約${l.readMin}分</div>
+  </div>
+  <div class="lesson-check">${done ? '✅' : '›'}</div>
+</div>`;
+  }).join('');
+
+  const allDone = m.lessons.every(l => mp.lessons.includes(l.id));
+  const cta = document.getElementById('quiz-cta');
+  cta.style.display = allDone ? 'block' : 'none';
+  document.getElementById('btn-start-quiz').onclick = () => startQuiz(m);
+}
+
+// ===== Lesson =====
+function openLesson(idx) {
+  state.currentLessonIdx = idx;
+  renderLesson();
+}
+
+function renderLesson() {
+  const m = state.currentModule;
+  const lesson = m.lessons[state.currentLessonIdx];
+  const total = m.lessons.length;
+  const idx = state.currentLessonIdx;
+
+  setHeader(lesson.title, true);
+  document.getElementById('btn-back').onclick = () => renderLessonList(m);
+  showView('view-lesson');
+
+  const pct = Math.round((idx + 1) / total * 100);
+  document.getElementById('lesson-progress-fill').style.width = pct + '%';
+  document.getElementById('lesson-progress-label').textContent = `${idx + 1} / ${total}`;
+  document.getElementById('lesson-content').innerHTML = lesson.html;
+
+  markLessonDone(m.id, lesson.id);
+
+  const mp = getModuleProgress(m.id);
+  const allDone = m.lessons.every(l => mp.lessons.includes(l.id));
+
+  const prevBtn = document.getElementById('btn-prev-lesson');
+  const nextBtn = document.getElementById('btn-next-lesson');
+
+  prevBtn.style.visibility = idx > 0 ? 'visible' : 'hidden';
+  prevBtn.onclick = () => { state.currentLessonIdx--; renderLesson(); window.scrollTo(0,0); };
+
+  if (idx < total - 1) {
+    nextBtn.textContent = '次へ →';
+    nextBtn.onclick = () => { state.currentLessonIdx++; renderLesson(); window.scrollTo(0,0); };
+  } else if (allDone) {
+    nextBtn.textContent = 'クイズへ →';
+    nextBtn.onclick = () => startQuiz(m);
+  } else {
+    nextBtn.textContent = '一覧へ戻る';
+    nextBtn.onclick = () => renderLessonList(m);
+  }
+}
+
+// ===== Quiz =====
+function startQuiz(m) {
+  state.currentModule = m;
+  state.quizAnswers = [];
+  state.quizCurrentIdx = 0;
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const m = state.currentModule;
+  const questions = m.quiz;
+  const idx = state.quizCurrentIdx;
+  const q = questions[idx];
+
+  setHeader('クイズ', true);
+  document.getElementById('btn-back').onclick = () => renderLessonList(m);
+  showView('view-quiz');
+
+  const pct = Math.round((idx / questions.length) * 100);
+  document.getElementById('quiz-progress-fill').style.width = pct + '%';
+  document.getElementById('quiz-progress-label').textContent = `${idx + 1} / ${questions.length}`;
+  document.getElementById('quiz-question').textContent = `Q${idx + 1}. ${q.q}`;
+
+  const optContainer = document.getElementById('quiz-options');
+  const labels = ['A', 'B', 'C', 'D'];
+  optContainer.innerHTML = q.options.map((opt, i) => `
+<button class="quiz-option" onclick="answerQuiz(${i})" id="opt-${i}">
+  <span class="quiz-option-label">${labels[i]}</span>
+  ${opt}
+</button>`).join('');
+
+  const expEl = document.getElementById('quiz-explanation');
+  expEl.className = 'quiz-explanation';
+  expEl.textContent = '';
+
+  const nextBtn = document.getElementById('btn-quiz-next');
+  nextBtn.style.display = 'none';
+}
+
+function answerQuiz(selectedIdx) {
+  const m = state.currentModule;
+  const q = m.quiz[state.quizCurrentIdx];
+  const isCorrect = selectedIdx === q.correct;
+
+  document.querySelectorAll('.quiz-option').forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.correct) btn.classList.add('correct');
+    else if (i === selectedIdx && !isCorrect) btn.classList.add('wrong');
+  });
+
+  const expEl = document.getElementById('quiz-explanation');
+  expEl.className = `quiz-explanation show ${isCorrect ? 'correct-exp' : 'wrong-exp'}`;
+  expEl.innerHTML = `<span class="exp-label">${isCorrect ? '✅ 正解！' : '❌ 不正解'}</span>${q.exp}`;
+
+  state.quizAnswers.push({ correct: isCorrect, selected: selectedIdx, answer: q.correct });
+
+  const nextBtn = document.getElementById('btn-quiz-next');
+  nextBtn.style.display = 'block';
+  const isLast = state.quizCurrentIdx >= m.quiz.length - 1;
+  nextBtn.textContent = isLast ? '結果を見る →' : '次の問題 →';
+  nextBtn.onclick = isLast ? showResult : () => { state.quizCurrentIdx++; renderQuizQuestion(); window.scrollTo(0,0); };
+}
+
+// ===== Result =====
+function showResult() {
+  const m = state.currentModule;
+  const score = state.quizAnswers.filter(a => a.correct).length;
+  const total = m.quiz.length;
+  const pct = Math.round(score / total * 100);
+
+  saveQuizScore(m.id, score, total);
+
+  setHeader('クイズ結果', true);
+  document.getElementById('btn-back').onclick = () => renderLessonList(m);
+  showView('view-result');
+
+  let emoji = '😢', msg = 'もう一度チャレンジしてみましょう！';
+  if (pct === 100) { emoji = '🎉'; msg = '完璧です！全問正解素晴らしい！'; }
+  else if (pct >= 70) { emoji = '😊'; msg = 'よくできました！もう少しで完璧です。'; }
+  else if (pct >= 50) { emoji = '🤔'; msg = 'レッスンをもう一度読んでみましょう。'; }
+
+  document.getElementById('result-emoji').textContent = emoji;
+  document.getElementById('result-title').textContent = pct === 100 ? '全問正解！' : 'クイズ完了！';
+  document.getElementById('result-score').textContent = `${score} / ${total}`;
+  document.getElementById('result-message').textContent = msg;
+
+  const answersEl = document.getElementById('result-answers');
+  answersEl.innerHTML = state.quizAnswers.map((a, i) => {
+    const q = m.quiz[i];
+    const labels = ['A', 'B', 'C', 'D'];
+    return `
+<div class="result-answer-item">
+  <span class="ans-icon">${a.correct ? '✅' : '❌'}</span>
+  <div class="ans-text">
+    <div class="ans-q">Q${i + 1}. ${q.q.substring(0, 40)}${q.q.length > 40 ? '…' : ''}</div>
+    ${!a.correct ? `<div class="ans-detail">正解: ${labels[q.correct]}. ${q.options[q.correct]}</div>` : ''}
+  </div>
+</div>`;
+  }).join('');
+
+  document.getElementById('btn-retry').onclick = () => startQuiz(m);
+  document.getElementById('btn-home').onclick = renderHome;
+}
+
+// ===== Init =====
+document.addEventListener('DOMContentLoaded', renderHome);
+  </script>
+</body>
+</html>
