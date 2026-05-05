@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>成田軽便鉄道廃線跡マップ</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Hiragino Sans', 'Yu Gothic', sans-serif; }
+    #map { width: 100%; height: 100vh; }
+
+    #title-bar {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      background: rgba(255,255,255,0.95);
+      padding: 8px 20px;
+      border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      text-align: center;
+      pointer-events: none;
+    }
+    #title-bar h1 { font-size: 15px; color: #2c3e50; font-weight: bold; }
+    #title-bar p  { font-size: 11px; color: #666; margin-top: 2px; }
+
+    #legend {
+      position: absolute;
+      bottom: 30px;
+      left: 10px;
+      z-index: 1000;
+      background: rgba(255,255,255,0.95);
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      font-size: 12px;
+      line-height: 1.8;
+      min-width: 220px;
+    }
+    #legend h3 { font-size: 13px; color: #2c3e50; margin-bottom: 8px; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-line {
+      width: 28px; height: 4px; border-radius: 2px; flex-shrink: 0;
+    }
+    .legend-line.dashed {
+      background: repeating-linear-gradient(90deg, #e74c3c 0, #e74c3c 6px, transparent 6px, transparent 12px);
+      height: 3px;
+    }
+    .legend-dot {
+      width: 12px; height: 12px; border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.3); flex-shrink: 0;
+    }
+    .legend-sep { border: none; border-top: 1px solid #eee; margin: 6px 0; }
+
+    #layer-control {
+      position: absolute;
+      top: 70px;
+      right: 10px;
+      z-index: 1000;
+      background: rgba(255,255,255,0.95);
+      padding: 10px 14px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      font-size: 12px;
+    }
+    #layer-control h3 { font-size: 12px; color: #2c3e50; margin-bottom: 6px; }
+    .layer-btn {
+      display: block; width: 100%;
+      padding: 5px 10px; margin-bottom: 4px;
+      border: 1px solid #ccc; border-radius: 4px;
+      background: #f8f8f8; cursor: pointer;
+      font-size: 11px; text-align: left;
+      transition: background 0.2s;
+    }
+    .layer-btn.active { background: #3498db; color: white; border-color: #2980b9; }
+    .layer-btn:hover:not(.active) { background: #e8f4fd; }
+  </style>
+</head>
+<body>
+
+<div id="title-bar">
+  <h1>成田軽便鉄道廃線跡マップ</h1>
+  <p>千葉県営鉄道多古線・成宗電気軌道 ／ 平山金吉 土地取得調査</p>
+</div>
+
+<div id="map"></div>
+
+<div id="legend">
+  <h3>凡例</h3>
+  <div class="legend-item">
+    <div class="legend-line" style="background:#e74c3c;"></div>
+    <span>多古線廃線跡（新新道・北ルート）</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-line dashed"></div>
+    <span>多古線廃線跡（東ルート・国道408号）</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-line" style="background:#3498db;"></div>
+    <span>成宗電気軌道（宗吾線）</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-line" style="background:#9b59b6;"></div>
+    <span>成宗電気軌道（成田山線）</span>
+  </div>
+  <hr class="legend-sep">
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#f1c40f;"></div>
+    <span>駅・主要地点</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#e67e22;"></div>
+    <span>廃線跡上の地点</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background:#e74c3c;"></div>
+    <span>平山金吉 関連地 ★</span>
+  </div>
+  <hr class="legend-sep">
+  <div style="font-size:10px; color:#888; line-height:1.5;">
+    路線は廃線跡推定（精度±50〜100m）<br>
+    各路線・地点をクリックで詳細表示
+  </div>
+</div>
+
+<div id="layer-control">
+  <h3>背景地図</h3>
+  <button class="layer-btn active" id="btn-satellite" onclick="switchLayer('satellite')">衛星写真（ESRI）</button>
+  <button class="layer-btn" id="btn-osm" onclick="switchLayer('osm')">OpenStreetMap</button>
+</div>
+
+<script>
+// ---- タイル定義 ----
+const tiles = {
+  satellite: L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    { attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community', maxZoom: 19 }
+  ),
+  osm: L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    { attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19 }
+  )
+};
+
+const map = L.map('map', {
+  center: [35.7820, 140.3180],
+  zoom: 14,
+  layers: [tiles.satellite]
+});
+
+function switchLayer(name) {
+  Object.values(tiles).forEach(t => map.removeLayer(t));
+  tiles[name].addTo(map);
+  document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + name).classList.add('active');
+}
+
+// ---- ① 多古線廃線跡（新新道・北ルート）　赤 ----
+// 画像3衛星写真で確認：成田駅東口からJR我孫子支線東側を北北東方向に並走
+const takoLineNorth = L.polyline([
+  [35.7730, 140.3188],  // 成田駅東口（駅構内北端）
+  [35.7742, 140.3193],  // 駅北側・新新道入口
+  [35.7758, 140.3198],  // 根木名川手前
+  [35.7778, 140.3206],
+  [35.7800, 140.3216],
+  [35.7822, 140.3225],  // 囲護台踏切（JR線を横断）★新新道北端
+  [35.7848, 140.3235],  // 成田小学校付近
+  [35.7895, 140.3252],  // 三宮神社（幸町）
+  [35.7922, 140.3260],  // JR成田線沿いに続く
+], {
+  color: '#e74c3c',
+  weight: 5,
+  opacity: 0.85,
+  lineJoin: 'round'
+});
+
+takoLineNorth.bindPopup(`
+  <b style="color:#e74c3c">● 多古線廃線跡（新新道・北ルート）</b><br>
+  <b>正式名称：</b>千葉県営鉄道多古線 → 成田鉄道多古線<br>
+  <b>区間：</b>成田〜三里塚〜多古〜八日市場<br>
+  <b>廃止：</b>昭和21年（1946年）<br>
+  <b>軌間：</b>600mm → 1067mmに改軌<br>
+  <hr style="margin:6px 0">
+  成田駅東口から北東方向へ。JR成田線（我孫子支線）の東側を約1km並走。<br>
+  廃線跡が現在の<b>「新新道」</b>の原型になったと考えられる。<br>
+  <br>
+  ★ 囲護台踏切でJR線を横断 → 成田小学校 → 三宮神社（幸町）へ
+`, { maxWidth: 300 });
+
+takoLineNorth.addTo(map);
+
+// ---- ② 多古線廃線跡（東ルート・国道408号）　赤破線 ----
+const takoLineEast = L.polyline([
+  [35.7822, 140.3225],  // 囲護台付近で東へ分岐
+  [35.7808, 140.3292],
+  [35.7790, 140.3360],
+  [35.7762, 140.3430],  // イオンモール成田（土屋）前
+  [35.7746, 140.3502],  // 三里塚方向（現・成田空港敷地内）
+], {
+  color: '#e74c3c',
+  weight: 4,
+  opacity: 0.5,
+  dashArray: '10, 8',
+  lineJoin: 'round'
+});
+
+takoLineEast.bindPopup(`
+  <b style="color:#c0392b">● 多古線廃線跡（東ルート・国道408号）</b><br>
+  <b>正式名称：</b>千葉県営鉄道多古線 → 成田鉄道多古線<br>
+  <b>廃止：</b>昭和21年（1946年）<br>
+  <hr style="margin:6px 0">
+  囲護台付近で東へ分岐 → 国道408号に転用 →<br>
+  <b>土屋（イオンモール成田）前</b>を通過 →<br>
+  三里塚（現・成田空港敷地内）へ。<br>
+  <br>
+  ※ 破線は推定ルート（精度±100m）
+`, { maxWidth: 280 });
+
+takoLineEast.addTo(map);
+
+// ---- ③ 成宗電気軌道（宗吾線）　青 ----
+const sosoLineNorth = L.polyline([
+  [35.7724, 140.3162],  // 成田駅前（京成成田駅前）
+  [35.7748, 140.3120],
+  [35.7790, 140.3065],
+  [35.7845, 140.3002],
+  [35.7905, 140.2952],  // 大袋付近（クレーパーク）★金吉取得確認
+  [35.7940, 140.2940],
+  [35.7969, 140.2978],  // 宗吾霊堂（終点）
+], {
+  color: '#3498db',
+  weight: 5,
+  opacity: 0.85,
+  lineJoin: 'round'
+});
+
+sosoLineNorth.bindPopup(`
+  <b style="color:#3498db">● 成宗電気軌道（宗吾線）</b><br>
+  <b>別名：</b>成宗電車・成田鉄道軌道線<br>
+  <b>区間：</b>成田駅前〜宗吾霊堂<br>
+  <b>廃止：</b>昭和19年（1944年）<br>
+  <b>軌間：</b>1372mm（電気軌道）<br>
+  <hr style="margin:6px 0">
+  成田駅前から北西方向 → 大袋地区 → 宗吾霊堂。<br>
+  現在「<b>電車道</b>」という道路名が残存。<br>
+  <br>
+  ★ <b>大袋（クレーパーク）</b>：平山金吉が購入したことが確認されている。
+`, { maxWidth: 300 });
+
+sosoLineNorth.addTo(map);
+
+// ---- ④ 成宗電気軌道（成田山線）　紫 ----
+const sosoLineWest = L.polyline([
+  [35.7724, 140.3162],  // 成田駅前
+  [35.7721, 140.3130],  // 電車道（市役所通り横断）
+  [35.7723, 140.3100],  // トンネル第1・第2（現存・土木遺産）
+  [35.7730, 140.3075],
+  [35.7748, 140.3060],  // 成田山新勝寺 門前（終点）
+], {
+  color: '#9b59b6',
+  weight: 5,
+  opacity: 0.85,
+  lineJoin: 'round'
+});
+
+sosoLineWest.bindPopup(`
+  <b style="color:#9b59b6">● 成宗電気軌道（成田山線）</b><br>
+  <b>別名：</b>成宗電車・成田鉄道軌道線<br>
+  <b>区間：</b>成田駅前〜成田山新勝寺 門前<br>
+  <b>廃止：</b>昭和19年（1944年）<br>
+  <b>軌間：</b>1372mm（電気軌道）<br>
+  <hr style="margin:6px 0">
+  成田駅前から西方向 → 「電車道」沿い →<br>
+  <b>レンガ造りトンネル第1・第2</b>（現存・土木遺産）→<br>
+  成田山新勝寺 門前へ。
+`, { maxWidth: 280 });
+
+sosoLineWest.addTo(map);
+
+// ---- マーカー用アイコン定義 ----
+function circleIcon(color, size = 14) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      width:${size}px; height:${size}px;
+      background:${color};
+      border:2px solid rgba(0,0,0,0.5);
+      border-radius:50%;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    "></div>`,
+    iconSize: [size, size],
+    iconAnchor: [size/2, size/2],
+    popupAnchor: [0, -size/2]
+  });
+}
+
+function starIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      font-size:22px;
+      line-height:1;
+      text-shadow: 0 0 4px rgba(0,0,0,0.6);
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+    ">★</div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+    popupAnchor: [0, -14]
+  });
+}
+
+// ---- マーカー一覧 ----
+const markers = [
+  {
+    lat: 35.7728, lng: 140.3181,
+    icon: circleIcon('#f1c40f', 18),
+    popup: `<b>🚉 成田駅（JR・京成）</b><br>各廃線の起点。<br>成田鉄道多古線・成宗電気軌道はここから発着していた。`
+  },
+  {
+    lat: 35.7822, lng: 140.3225,
+    icon: circleIcon('#e67e22'),
+    popup: `<b>⬛ 囲護台踏切</b><br>新新道（多古線廃線跡）北端。<br>ここでJR成田線（我孫子支線）を横断し、<br>東ルート（国道408号方面）と分岐する。`
+  },
+  {
+    lat: 35.7848, lng: 140.3238,
+    icon: circleIcon('#e67e22'),
+    popup: `<b>🏫 成田小学校付近</b><br>廃線跡の道が続く地点。<br>多古線廃線跡（新新道）沿い。`
+  },
+  {
+    lat: 35.7895, lng: 140.3253,
+    icon: circleIcon('#e67e22'),
+    popup: `<b>⛩ 三宮神社（幸町）</b><br>JR成田線沿いの地点。<br>多古線廃線跡（新新道）が続く。<br>平山金吉の土地所有エリア近傍。`
+  },
+  {
+    lat: 35.7762, lng: 140.3430,
+    icon: circleIcon('#e67e22'),
+    popup: `<b>🛍 イオンモール成田（土屋）</b><br>国道408号上。<br>多古線廃線跡（東ルート）が通過する地点。`
+  },
+  {
+    lat: 35.7969, lng: 140.2978,
+    icon: circleIcon('#f1c40f', 16),
+    popup: `<b>⛩ 宗吾霊堂</b><br>成宗電気軌道（宗吾線）の終点。<br>義民・佐倉惣五郎を祀る霊堂。`
+  },
+  {
+    lat: 35.7748, lng: 140.3060,
+    icon: circleIcon('#f1c40f', 16),
+    popup: `<b>⛩ 成田山新勝寺 門前</b><br>成宗電気軌道（成田山線）の終点。<br>レンガ造りトンネル第1・第2が現存（土木遺産）。`
+  },
+  // 平山金吉 関連地（赤★）
+  {
+    lat: 35.7880, lng: 140.3250,
+    icon: starIcon('#e74c3c'),
+    popup: `<b style="color:#e74c3c">★ 平山邸・旧製材工場跡（幸町）</b><br>
+      <b>平山金吉（平山建設 創業者）</b>の土地。<br>
+      多古線廃線跡（新新道）沿い。<br>
+      成田小学校〜三宮神社にかけての広大な土地を所有。<br>
+      現在の平山秀樹（4代目）の自宅・旧製材工場跡地がこのエリア。<br>
+      <hr style="margin:6px 0">
+      <span style="color:#888;font-size:11px">【調査確認済】廃線跡沿いの土地取得</span>`
+  },
+  {
+    lat: 35.7905, lng: 140.2952,
+    icon: starIcon('#e74c3c'),
+    popup: `<b style="color:#e74c3c">★ 大袋クレーパーク</b><br>
+      <b>平山金吉（平山建設 創業者）</b>が購入した土地。<br>
+      成宗電気軌道（宗吾線）廃線跡沿い。<br>
+      <hr style="margin:6px 0">
+      <span style="color:#888;font-size:11px">【調査確認済】廃線跡沿いの土地取得</span>`
+  },
+];
+
+markers.forEach(m => {
+  L.marker([m.lat, m.lng], { icon: m.icon })
+    .bindPopup(m.popup, { maxWidth: 300 })
+    .addTo(map);
+});
+
+// ---- 仮説パネル（右下） ----
+const hypothesisControl = L.control({ position: 'bottomright' });
+hypothesisControl.onAdd = function() {
+  const div = L.DomUtil.create('div');
+  div.innerHTML = `
+    <div style="
+      background:rgba(255,255,255,0.95);
+      padding:10px 14px;
+      border-radius:8px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.3);
+      font-size:11px;
+      max-width:220px;
+      line-height:1.6;
+    ">
+      <b style="font-size:12px; color:#e74c3c">【調査仮説】</b><br>
+      平山金吉は廃線跡の用地を<br>
+      <b>系統的に取得</b>していた可能性がある。<br>
+      廃線跡は<b>安価・直線的・インフラ用地</b>として<br>
+      戦後の土地取得に適していた。<br>
+      <hr style="margin:5px 0; border:none; border-top:1px solid #eee;">
+      <span style="color:#888">★印 = 取得確認済（2ヶ所）</span><br>
+      <span style="color:#888">廃線跡との空間的一致を検証中</span>
+    </div>
+  `;
+  return div;
+};
+hypothesisControl.addTo(map);
+</script>
+</body>
+</html>
