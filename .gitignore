@@ -1,0 +1,8 @@
+# 司令席が集計した実データと出力（コミットしない）
+.claude/skills/cockpit/data/
+out/
+cockpit.html
+
+# Python
+__pycache__/
+*.pyc
