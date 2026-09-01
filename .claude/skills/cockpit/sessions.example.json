@@ -1,0 +1,12 @@
+{
+  "generated_at": "2026-09-01T21:40:00Z",
+  "window_days": 60,
+  "sessions": [
+    {"id":"session_EXAMPLE0001","title":"見積比較ツールの常駐設定","bucket":"SESSION_STATUS_BUCKET_BLOCKED","origin":"android","kind":"anthropic_cloud","repo":"example/estimate-tool","branch":"claude/internal-deployment","model":"claude-opus-5","updated_at":"2026-08-25T09:14:48Z","status_detail":"手順書を作成。設置場所の判断待ち","needs_action":"優先順位の確認：常駐先を先に決めるか、手順書を先に配るか","cost_usd":5.27},
+    {"id":"session_EXAMPLE0002","title":"補助金申請書のたたき台","bucket":"SESSION_STATUS_BUCKET_BLOCKED","origin":"web_claude_ai","kind":"anthropic_cloud","repo":"example/docs","branch":"claude/subsidy-draft","model":"claude-opus-5","updated_at":"2026-08-28T22:07:42Z","status_detail":"2案を作成。提出前の確認が必要","needs_action":"確認3点（事業区分／自己負担の見込み／どの案で出すか）","cost_usd":2.25},
+    {"id":"session_EXAMPLE0003","title":"司令席の実装","bucket":"SESSION_STATUS_BUCKET_WORKING","origin":"desktop_app","kind":"anthropic_cloud","repo":"example/hci","branch":"claude/cockpit","model":"claude-opus-5","updated_at":"2026-09-01T21:17:29Z","status_detail":"カンバンの描画を実装中"},
+    {"id":"session_EXAMPLE0004","title":"アーカイブのインデックス再生成","bucket":"SESSION_STATUS_BUCKET_REVIEW_READY","origin":"desktop_app","kind":"anthropic_cloud","repo":"example/archive","branch":"main","model":"claude-opus-5","updated_at":"2026-08-24T03:18:48Z","status_detail":"605件のズレを解消。索引を最新まで更新","cost_usd":43.03},
+    {"id":"session_EXAMPLE0005","title":"常駐ディスパッチ","bucket":"SESSION_STATUS_BUCKET_REVIEW_READY","origin":"desktop_app","kind":"bridge","repo":null,"branch":null,"model":null,"updated_at":"2026-08-28T06:26:30Z","status_detail":"端末に到達できず","error":"computer_unreachable","unread":true},
+    {"id":"session_EXAMPLE0006","title":"マンションのマッシング検討","bucket":"SESSION_STATUS_BUCKET_BLOCKED","origin":"claude_code_cli","kind":"bridge","repo":"example/archive","branch":"main","model":"claude-opus-4-8","updated_at":"2026-08-12T05:54:39Z","status_detail":"モデル確認完了（カメラ9本・レンダ準備済み）","needs_action":"次の一手を指示：試しレンダ／モデル修正／カメラ・日照調整","error":"environment_deleted","cost_usd":0.83,"unread":true}
+  ]
+}

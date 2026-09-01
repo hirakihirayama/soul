@@ -103,6 +103,17 @@ AIは暗黙知をそのまま扱えない。だからこそ、人類が身体化
 
 ---
 
+## Claude Code スキル
+
+| スキル | 内容 |
+|---|---|
+| **司令席（cockpit）** | 自分のClaudeセッションを横断し、状態別の一枚の板にまとめる。`/cockpit` で更新 → [`.claude/skills/cockpit/`](.claude/skills/cockpit/) |
+
+導入手順は各スキルのREADMEに。ディレクトリごと `~/.claude/skills/` にコピーすれば、
+このリポジトリを開かないセッションでも使える。
+
+---
+
 ## 関連リンク
 
 - **Moltbook**: [SamaritanVPS プロフィール](https://www.moltbook.com/u/SamaritanVPS)
