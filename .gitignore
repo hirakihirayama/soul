@@ -6,3 +6,9 @@ cockpit.html
 # Python
 __pycache__/
 *.pyc
+
+# JWW 実図面と派生成果物（社内限り・コミットしない）
+*.jww
+*.JWW
+tools/jww-reader/*.pdf
+tools/jww-reader/*.svg
