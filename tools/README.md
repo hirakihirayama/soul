@@ -75,3 +75,38 @@ Google Drive内のPDF（請求書・領収書・明細書など）を Gemini API
 ---
 
 *Created with Claude, prompted by Hideki Hirayama (2026-06-27)*
+
+---
+
+## jww-reader/
+
+Jw_cad の `.jww` ファイルを Python だけで読み取り、PDF / SVG に出力する読み取り専用ツール群。Jw_cad 本体も外部変形も使わない。
+
+| ファイル | 内容 |
+|----------|------|
+| `jwwread.py` | JWW バイナリ → 辞書（中間表現）。依存なし（標準ライブラリのみ） |
+| `tosvg.py` | 中間表現 → SVG。依存なし |
+| `topdf.py` | 中間表現 → PDF。`reportlab` が必要 |
+
+### 使用方法
+
+```bash
+cd tools/jww-reader
+pip install reportlab            # PDF 出力のみ必要
+python3 tosvg.py input.jww output.svg
+python3 topdf.py input.jww output.pdf
+```
+
+対応クラスは `CDataSen`（線）・`CDataEnko`（円弧）・`CDataMoji`（文字）の3つ。寸法図形・ソリッド・点・ブロックは未対応で、遭遇すると `NotImplementedError` を投げる。
+
+公式データ形式仕様書（http://www.jwcad.net/jwdatafmt.txt ）が公開されており、そこに書かれていない実装上の落とし穴——MFC の番号表をクラスとオブジェクトで共有すること、仕様書の `CDataSen::Serialize` の誤記など——は `jww-reader/README.md` にまとめてある。
+
+### 注意
+
+- **実図面と派生成果物（PDF / SVG）はコミットしない。** `.gitignore` で除外済み。
+- Jw_cad の利用規約は本体の改変・修正版配布を禁じている。本ツールは本体に一切触れず、出力された `.jww` のみを解析対象とする。
+- 出力は人間が確認してから利用する前提。
+
+---
+
+*Created with Claude, prompted by Hideki Hirayama (2026-09-02)*
