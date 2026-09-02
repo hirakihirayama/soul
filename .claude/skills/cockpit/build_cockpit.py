@@ -595,7 +595,7 @@ def build(payload, now):
   <footer class="colophon">
     列は状態。数字は最終更新からの経過日数。「あなた待ち」は古い順に並ぶ——待たせている順。<br>
     環境が消えたセッションは入力待ちでも「停止」に置く。答えても届かないため。<br>
-    生成: <code>cockpit/build_cockpit.py</code>（hirakihirayama/hci）。この画面は非公開。取引先担当者名を含む場合があるため共有しない。
+    生成: <code>.claude/skills/cockpit/build_cockpit.py</code>（hirakihirayama/soul）。この画面は非公開。取引先担当者名を含む場合があるため共有しない。
   </footer>
 </div>
 
