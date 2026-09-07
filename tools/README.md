@@ -97,9 +97,11 @@ python3 tosvg.py input.jww output.svg
 python3 topdf.py input.jww output.pdf
 ```
 
-対応クラスは `CDataSen`（線）・`CDataEnko`（円弧）・`CDataMoji`（文字）の3つ。寸法図形・ソリッド・点・ブロックは未対応で、遭遇すると `NotImplementedError` を投げる。
+対応クラスは `CDataSen`（線）・`CDataEnko`（円弧）・`CDataMoji`（文字）・`CDataSolid`（ソリッド。多角形と塗り円の両方）・`CDataTen`（点）・`CDataSunpou`（寸法図形）・`CDataBlock`（ブロック参照）の7つ。`CDataList`（ブロック定義）のみ未対応だが、これはエンティティリストの後ろに続くため走査は完走する。
 
-公式データ形式仕様書（http://www.jwcad.net/jwdatafmt.txt ）が公開されており、そこに書かれていない実装上の落とし穴——MFC の番号表をクラスとオブジェクトで共有すること、仕様書の `CDataSen::Serialize` の誤記など——は `jww-reader/README.md` にまとめてある。
+座標は「図面上の mm」で入っている。実寸に直すには要素の属するレイヤグループの縮尺を掛ける（`実寸mm = 値 × ir['scale'][e['glayer']]`）。レイヤグループごとに縮尺が違うので、全要素を同じ係数で換算してはいけない。
+
+公式データ形式仕様書（http://www.jwcad.net/jwdatafmt.txt ）が公開されており、そこに書かれていない実装上の落とし穴——MFC の番号表をクラスとオブジェクトで共有すること、要素数が 32,766 を超えるとタグが WORD から DWORD に変わること、線種番号 101 以上のソリッドは多角形ではなく塗り円であること、仕様書の `CDataSen::Serialize` の誤記など——は `jww-reader/README.md` にまとめてある。
 
 ### 注意
 
