@@ -8,6 +8,30 @@ JW={0:'#000000',1:'#0000ff',2:'#000000',3:'#00a000',4:'#00a0a0',
     5:'#ff0000',6:'#a000a0',7:'#808000',8:'#808080',9:'#a0a0a0'}
 pdfmetrics.registerFont(UnicodeCIDFont('HeiseiKakuGo-W5'))
 
+def solid_col(e):
+    """ソリッドの色。線色番号10のときは COLORREF(0x00BBGGRR) が入っている"""
+    if e['color']==10 and 'rgb' in e:
+        v=e['rgb']
+        return HexColor('#%02x%02x%02x' % (v & 0xFF, (v>>8) & 0xFF, (v>>16) & 0xFF))
+    return HexColor(JW.get(e['color'],'#000000'))
+
+def solid_pts(e):
+    return [(e['x1'],e['y1']),(e['x2'],e['y2']),(e['x3'],e['y3']),(e['x4'],e['y4'])]
+
+def arc_pts(e, n=48):
+    """円ソリッドを塗りポリゴンに離散化する。部分円は中心を含めて扇形にする"""
+    sw = 2*math.pi if e.get('full') else e['asweep']
+    f  = e['flat'] or 1.0
+    t  = e['tilt']
+    out=[]
+    for i in range(n+1):
+        a=e['a0']+sw*i/n
+        px=e['rad']*math.cos(a); py=e['rad']*f*math.sin(a)
+        out.append((e['cx']+px*math.cos(t)-py*math.sin(t),
+                    e['cy']+px*math.sin(t)+py*math.cos(t)))
+    if not e.get('full'): out.append((e['cx'],e['cy']))
+    return out
+
 def topdf(ir, out, papermm=(420,297)):
     E=ir['entities']
     xs=[];ys=[]
@@ -16,6 +40,12 @@ def topdf(ir, out, papermm=(420,297)):
             xs+=[e['cx']-e['rad'],e['cx']+e['rad']]; ys+=[e['cy']-e['rad'],e['cy']+e['rad']]
         elif e['kind']=='CDataSen':
             xs+=[e['x1'],e['x2']]; ys+=[e['y1'],e['y2']]
+        elif e['kind']=='CDataSolid':
+            if e.get('circle'):
+                xs+=[e['cx']-e['rad'], e['cx']+e['rad']]
+                ys+=[e['cy']-e['rad'], e['cy']+e['rad']]
+            else:
+                p=solid_pts(e); xs+=[q[0] for q in p]; ys+=[q[1] for q in p]
         else: xs.append(e['x1']); ys.append(e['y1'])
     xs.sort(); ys.sort(); n=len(xs)
     q=lambda a,f: a[min(len(a)-1,max(0,int(f*(len(a)-1))))]
@@ -30,6 +60,15 @@ def topdf(ir, out, papermm=(420,297)):
     T=lambda x,y:(ox+x*s, oy+y*s)
     c=canvas.Canvas(out, pagesize=(pw,ph))
     c.setLineWidth(0.2)
+    # ソリッドは線の下に敷く
+    for e in E:
+        if e['kind']!='CDataSolid': continue
+        c.setFillColor(solid_col(e))
+        src = arc_pts(e) if e.get('circle') else solid_pts(e)
+        p=c.beginPath(); pts=[T(x,y) for x,y in src]
+        p.moveTo(*pts[0])
+        for q in pts[1:]: p.lineTo(*q)
+        p.close(); c.drawPath(p, stroke=0, fill=1)
     cur=None
     for e in E:
         col=HexColor(JW.get(e['color'],'#000000'))
