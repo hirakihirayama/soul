@@ -4,7 +4,15 @@
 対応クラス: CDataSen / CDataEnko / CDataMoji / CDataSolid / CDataTen /
             CDataSunpou / CDataBlock
 未対応:     CDataList（ブロック定義リスト。エンティティリストの後に続くため
-            trailing_bytes として残る）、Ver3.51 未満の 13 バイト CData ヘッダ。
+            trailing_bytes として残る）。
+
+Ver3.51 未満（実測 Ver230）は CData 共通ヘッダが 13 バイト（末尾の flg が無い）で、
+ヘッダ後半のレイアウトも違う。この場合レイヤ名・ペン設定は取得しない。
+
+要素数フィールドは WORD だが、65,535 を超えると MFC の 0xFFFF エスケープ＋DWORD に
+なる（Ver230 は件数によらず常にエスケープする）。長さが 2 バイトと 6 バイトで変わる
+ため、エンティティリストの先頭は決め打ちせず常に走査で確定する
+（_find_entity_list / _entity_count）。想定終端との差は header_extra。
 
 実寸換算: 実寸mm = 格納座標 × そのレイヤグループの縮尺 scale[glayer]
 """
@@ -24,26 +32,79 @@ class R:
         v=s.b[s.p:s.p+n]; s.p+=n
         return v.decode('cp932','replace')
 
-def _hdr(r):
-    """CData 共通ヘッダ 15 バイト。入れ子メンバの Serialize もこれを書く"""
-    return {'group':r.dw(), 'style':r.by(), 'color':r.w(), 'width':r.w(),
-            'layer':r.w(), 'glayer':r.w(), 'flg':r.w()}
+CLASSES = ('CDataSen', 'CDataEnko', 'CDataMoji', 'CDataSolid', 'CDataTen',
+           'CDataSunpou', 'CDataBlock', 'CDataList')
 
-def _sen(r):
-    h=_hdr(r); h['kind']='CDataSen'
+def _find_entity_list(b, start, ver):
+    """エンティティリスト先頭（最初のクラス登録の 0xFFFF）の位置を返す。
+
+    クラス登録は 0xFFFF + スキーマ番号(WORD) + 名前長(WORD) + "CData…" の並び。
+    直前の要素数フィールドが 2 バイトか 6 バイトか（エスケープの有無）で位置が
+    変わるので、決め打ちせずここで実際の並びから拾う。
+
+    **スキーマ番号はデータ形式のバージョン番号とは別物**で、実測では同じ Ver700
+    のファイル間でも値が違った。したがって照合条件には使わず、タグ・名前長・
+    既知のクラス名だけで判定する。
+    """
+    i = start
+    while True:
+        j = b.find(b'CData', i)
+        if j < 0:
+            raise ValueError('エンティティリストの先頭が見つかりません')
+        k = j - 6
+        if k >= start:
+            nl  = struct.unpack('<H', b[j-2:j])[0]
+            tag = struct.unpack('<H', b[k:k+2])[0]
+            if (tag == 0xFFFF and 8 <= nl <= 16
+                    and b[j:j+nl].decode('ascii', 'replace') in CLASSES):
+                return k
+        i = j + 1
+
+
+def _entity_count(r, p_hdr_end, ver):
+    """エンティティリストの要素数を読み、r.p を最初のクラスタグに置く。
+
+    返り値は (要素数, ヘッダ終端との差, スキーマ番号)。差が 0 でなければヘッダの
+    レイアウトがこちらの想定と違っていて、走査で補正したということ。
+    """
+    j = _find_entity_list(r.b, p_hdr_end, ver)
+    schema = struct.unpack('<H', r.b[j+2:j+4])[0]
+    if struct.unpack('<H', r.b[j-6:j-4])[0] == 0xFFFF:
+        # MFC の 0xFFFF エスケープ。要素数が WORD に収まらない（65,535 超）とき、
+        # および Ver230 では件数によらず、この形で書かれる
+        head = j - 6
+        r.p = head + 2
+        n = r.dw()
+    else:
+        head = j - 2
+        r.p = head
+        n = r.w()
+    return n, head - p_hdr_end, schema
+
+
+def _hdr(r, hdr15=True):
+    """CData 共通ヘッダ。Ver3.51 以降は 15 バイト、それ未満は 13 バイト
+    （末尾の flg が無い）。入れ子メンバの Serialize もこれを書く"""
+    h = {'group':r.dw(), 'style':r.by(), 'color':r.w(), 'width':r.w(),
+         'layer':r.w(), 'glayer':r.w()}
+    h['flg'] = r.w() if hdr15 else 0
+    return h
+
+def _sen(r, hdr15=True):
+    h=_hdr(r, hdr15); h['kind']='CDataSen'
     h.update(zip(('x1','y1','x2','y2'), (r.d(),r.d(),r.d(),r.d())))
     return h
 
-def _moji(r):
-    h=_hdr(r); h['kind']='CDataMoji'
+def _moji(r, hdr15=True):
+    h=_hdr(r, hdr15); h['kind']='CDataMoji'
     h.update(zip(('x1','y1','x2','y2'), (r.d(),r.d(),r.d(),r.d())))
     h['shu']=r.dw(); h['sx']=r.d(); h['sy']=r.d(); h['pitch']=r.d(); h['angle']=r.d()
     h['font']=r.st(); h['text']=r.st()
     h['sunpou_flg']=h['width']
     return h
 
-def _ten(r):
-    h=_hdr(r); h['kind']='CDataTen'
+def _ten(r, hdr15=True):
+    h=_hdr(r, hdr15); h['kind']='CDataTen'
     h.update(zip(('x1','y1'), (r.d(),r.d())))
     h['kariten']=r.dw()
     if h['style']==100:
@@ -59,6 +120,7 @@ def read(path):
     for g in range(16):
         r.dw(); r.dw(); scale[g]=r.d(); r.dw()
         for l in range(16): r.dw(); r.dw()
+    p_after_scale = r.p   # Ver3.51 未満はここから先のレイアウトが違う
     for _ in range(14): r.dw()
     for _ in range(5):  r.dw()
     r.dw(); r.dw()
@@ -95,7 +157,17 @@ def read(path):
     r.d(); r.d(); r.dw()
     for _ in range(6): r.d()
 
-    n_declared=r.w()
+    hdr15 = ver >= 351
+    if not hdr15:
+        # ヘッダ後半のレイアウトが違う。レイヤ名・ペン設定は捨て、
+        # エンティティリストの先頭を走査して確定する
+        lay={}; glay=[]; pen_color={}; pen_width={}
+        n_declared, hdr_extra, schema = _entity_count(r, p_after_scale, ver)
+    else:
+        # 要素数は WORD だが 65,535 を超えると 0xFFFF エスケープ＋DWORD になる
+        # （実測 159 本のうち 6 本。6万要素超の図面で初めて踏む）。決め打ちで
+        # WORD を読むと最初の1件目で走査がずれるので、ここも走査で確定する。
+        n_declared, hdr_extra, schema = _entity_count(r, r.p, ver)
     cmap={}; idx=0; ents=[]
     for _ in range(n_declared):
         # MFC TN002: 番号表の index が 0x7FFE を超えると WORD タグが 0x7FFF に
@@ -115,7 +187,7 @@ def read(path):
         else:
             cls=cmap[t & 0x7FFF]
         grp=r.dw(); style=r.by(); col=r.w(); wid=r.w()
-        ly=r.w(); gly=r.w(); flg=r.w()
+        ly=r.w(); gly=r.w(); flg=r.w() if hdr15 else 0
         e={'kind':cls,'layer':ly,'glayer':gly,'color':col,'style':style,'flg':flg,'group':grp}
         if cls=='CDataSen':
             e.update(zip(('x1','y1','x2','y2'), (r.d(),r.d(),r.d(),r.d())))
@@ -157,13 +229,13 @@ def read(path):
         elif cls=='CDataSunpou':
             # 寸法線 + 寸法値。Ver4.20 以降は SXFモード + 補助線2 + 点2 + 補助点2。
             # 入れ子メンバは各自 CData ヘッダを持つ（クラスタグは持たない）
-            e['sen']=_sen(r); e['moji']=_moji(r)
+            e['sen']=_sen(r, hdr15); e['moji']=_moji(r, hdr15)
             e['text']=e['moji'].get('text')
             if ver>=420:
                 e['sxf']=r.w()
-                e['senho']=[_sen(r), _sen(r)]
-                e['ten']=[_ten(r), _ten(r)]
-                e['tenho']=[_ten(r), _ten(r)]
+                e['senho']=[_sen(r, hdr15), _sen(r, hdr15)]
+                e['ten']=[_ten(r, hdr15), _ten(r, hdr15)]
+                e['tenho']=[_ten(r, hdr15), _ten(r, hdr15)]
             # 全エンティティが座標を持つ IR 契約を保つため寸法線の座標を昇格させる
             for k in ('x1','y1','x2','y2'): e[k]=e['sen'][k]
         elif cls=='CDataBlock':
@@ -179,4 +251,5 @@ def read(path):
     return {'version':ver,'zumen':zumen,'memo':memo,'scale':scale,
             'layers':{k:v for k,v in lay.items() if v},'glayers':glay,
             'pen_color':pen_color,'pen_width':pen_width,
-            'declared':n_declared,'entities':ents,'trailing_bytes':rest}
+            'declared':n_declared,'entities':ents,'trailing_bytes':rest,
+            'header_extra':hdr_extra,'schema':schema}
