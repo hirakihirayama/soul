@@ -7,8 +7,12 @@
             trailing_bytes として残る）。
 
 Ver3.51 未満（実測 Ver230）は CData 共通ヘッダが 13 バイト（末尾の flg が無い）で、
-ヘッダ後半のレイアウトも違う。後半は決め打ちで進めず、エンティティリストの先頭を
-走査して確定する（_find_entity_list）。この場合レイヤ名・ペン設定は取得しない。
+ヘッダ後半のレイアウトも違う。この場合レイヤ名・ペン設定は取得しない。
+
+要素数フィールドは WORD だが、65,535 を超えると MFC の 0xFFFF エスケープ＋DWORD に
+なる（Ver230 は件数によらず常にエスケープする）。長さが 2 バイトと 6 バイトで変わる
+ため、エンティティリストの先頭は決め打ちせず常に走査で確定する
+（_find_entity_list / _entity_count）。想定終端との差は header_extra。
 
 実寸換算: 実寸mm = 格納座標 × そのレイヤグループの縮尺 scale[glayer]
 """
@@ -28,11 +32,19 @@ class R:
         v=s.b[s.p:s.p+n]; s.p+=n
         return v.decode('cp932','replace')
 
+CLASSES = ('CDataSen', 'CDataEnko', 'CDataMoji', 'CDataSolid', 'CDataTen',
+           'CDataSunpou', 'CDataBlock', 'CDataList')
+
 def _find_entity_list(b, start, ver):
     """エンティティリスト先頭（最初のクラス登録の 0xFFFF）の位置を返す。
 
-    クラス登録は 0xFFFF + スキーマ番号(=ver) + 名前長(WORD) + "CData…" の並び。
-    Ver3.51 未満はヘッダ後半の項目数が分からないので、決め打ちせずここで拾う。
+    クラス登録は 0xFFFF + スキーマ番号(WORD) + 名前長(WORD) + "CData…" の並び。
+    直前の要素数フィールドが 2 バイトか 6 バイトか（エスケープの有無）で位置が
+    変わるので、決め打ちせずここで実際の並びから拾う。
+
+    **スキーマ番号はデータ形式のバージョン番号とは別物**で、実測では同じ Ver700
+    のファイル間でも値が違った。したがって照合条件には使わず、タグ・名前長・
+    既知のクラス名だけで判定する。
     """
     i = start
     while True:
@@ -42,11 +54,32 @@ def _find_entity_list(b, start, ver):
         k = j - 6
         if k >= start:
             nl  = struct.unpack('<H', b[j-2:j])[0]
-            sch = struct.unpack('<H', b[j-4:j-2])[0]
             tag = struct.unpack('<H', b[k:k+2])[0]
-            if tag == 0xFFFF and sch == ver and 8 <= nl <= 16 and b[j:j+nl].isascii():
+            if (tag == 0xFFFF and 8 <= nl <= 16
+                    and b[j:j+nl].decode('ascii', 'replace') in CLASSES):
                 return k
         i = j + 1
+
+
+def _entity_count(r, p_hdr_end, ver):
+    """エンティティリストの要素数を読み、r.p を最初のクラスタグに置く。
+
+    返り値は (要素数, ヘッダ終端との差, スキーマ番号)。差が 0 でなければヘッダの
+    レイアウトがこちらの想定と違っていて、走査で補正したということ。
+    """
+    j = _find_entity_list(r.b, p_hdr_end, ver)
+    schema = struct.unpack('<H', r.b[j+2:j+4])[0]
+    if struct.unpack('<H', r.b[j-6:j-4])[0] == 0xFFFF:
+        # MFC の 0xFFFF エスケープ。要素数が WORD に収まらない（65,535 超）とき、
+        # および Ver230 では件数によらず、この形で書かれる
+        head = j - 6
+        r.p = head + 2
+        n = r.dw()
+    else:
+        head = j - 2
+        r.p = head
+        n = r.w()
+    return n, head - p_hdr_end, schema
 
 
 def _hdr(r, hdr15=True):
@@ -129,13 +162,12 @@ def read(path):
         # ヘッダ後半のレイアウトが違う。レイヤ名・ペン設定は捨て、
         # エンティティリストの先頭を走査して確定する
         lay={}; glay=[]; pen_color={}; pen_width={}
-        j = _find_entity_list(r.b, p_after_scale, ver)
-        if struct.unpack('<H', r.b[j-6:j-4])[0] == 0xFFFF:
-            r.p = j-6; r.w(); n_declared = r.dw()   # MFC の 0xFFFF エスケープ
-        else:
-            r.p = j-2; n_declared = r.w()
+        n_declared, hdr_extra, schema = _entity_count(r, p_after_scale, ver)
     else:
-        n_declared=r.w()
+        # 要素数は WORD だが 65,535 を超えると 0xFFFF エスケープ＋DWORD になる
+        # （実測 159 本のうち 6 本。6万要素超の図面で初めて踏む）。決め打ちで
+        # WORD を読むと最初の1件目で走査がずれるので、ここも走査で確定する。
+        n_declared, hdr_extra, schema = _entity_count(r, r.p, ver)
     cmap={}; idx=0; ents=[]
     for _ in range(n_declared):
         # MFC TN002: 番号表の index が 0x7FFE を超えると WORD タグが 0x7FFF に
@@ -219,4 +251,5 @@ def read(path):
     return {'version':ver,'zumen':zumen,'memo':memo,'scale':scale,
             'layers':{k:v for k,v in lay.items() if v},'glayers':glay,
             'pen_color':pen_color,'pen_width':pen_width,
-            'declared':n_declared,'entities':ents,'trailing_bytes':rest}
+            'declared':n_declared,'entities':ents,'trailing_bytes':rest,
+            'header_extra':hdr_extra,'schema':schema}
