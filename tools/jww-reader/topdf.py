@@ -1,12 +1,28 @@
 # -*- coding: utf-8 -*-
 import math, jwwread
-from reportlab.pdfgen import canvas
-from reportlab.lib.colors import HexColor
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 JW={0:'#000000',1:'#0000ff',2:'#000000',3:'#00a000',4:'#00a0a0',
     5:'#ff0000',6:'#a000a0',7:'#808000',8:'#808080',9:'#a0a0a0'}
-pdfmetrics.registerFont(UnicodeCIDFont('HeiseiKakuGo-W5'))
+FONT='HeiseiKakuGo-W5'
+canvas=None; HexColor=None; _ready=False
+
+def _reportlab():
+    """reportlab を遅延 import する。
+
+    PDF を使わない利用者にモジュール先頭で ImportError を出さないため。
+    パーサ本体（jwwread）は標準ライブラリだけで動く。
+    """
+    global canvas, HexColor, _ready
+    if _ready:
+        return
+    try:
+        from reportlab.pdfgen import canvas as _canvas
+        from reportlab.lib.colors import HexColor as _HexColor
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+    except ImportError:
+        raise SystemExit('PDF 出力には reportlab が必要です: pip install reportlab')
+    pdfmetrics.registerFont(UnicodeCIDFont(FONT))
+    canvas, HexColor, _ready = _canvas, _HexColor, True
 
 def solid_col(e):
     """ソリッドの色。線色番号10のときは COLORREF(0x00BBGGRR) が入っている"""
@@ -33,6 +49,7 @@ def arc_pts(e, n=48):
     return out
 
 def topdf(ir, out, papermm=(420,297)):
+    _reportlab()
     E=ir['entities']
     xs=[];ys=[]
     for e in E:
@@ -97,7 +114,7 @@ def topdf(ir, out, papermm=(420,297)):
         x,y=T(e['x1'],e['y1'])
         ang=math.degrees(math.atan2(e['y2']-e['y1'], e['x2']-e['x1']))
         c.saveState(); c.translate(x,y); c.rotate(ang)
-        c.setFont('HeiseiKakuGo-W5', fs)
+        c.setFont(FONT, fs)
         c.drawString(0,0,e['text'])
         c.restoreState()
     c.showPage(); c.save()
