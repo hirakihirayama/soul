@@ -7,10 +7,14 @@ Jw_cad を起動せず、外部変形も使わない。ファイルへの書き�
 
 ## なぜ公開しているか
 
-Jw_cad は国内の建設業界で広く使われているが、JWW のバイナリ仕様は完全には公開
-されていない。そのため図面の中身をプログラムで読む手段が事実上なく、CAD を開いて
-人が転記するしかない。ここを機械で読めるようにすることは、業界の生産性という
-共通課題への貢献になると考えている。
+Jw_cad は国内の建設業界で広く使われている。データ形式の資料は
+[公式に公開されている](http://www.jwcad.net/jwdatafmt.txt)が、バイトオフセットの
+表がなく、資料に載っていない挙動もある。読み取りの実装も C++ / C# / Go / Rust で
+いくつか公開されているが、いずれもほとんど知られていない。結果として現場では、
+図面の中身を CAD で開いて人が転記するのが普通になっている。
+
+ここを機械で読めるようにし、**実案件を通したときに何が起きるかまで含めて**
+公開することは、業界の生産性という共通課題への貢献になると考えている。
 
 コードより価値が高いのは
 **[JWW を機械で読むときに踏む罠](#jww-を機械で読むときに踏む罠)** の章だと思う。
@@ -678,4 +682,8 @@ soul リポジトリの他の文書（設計思想・原則を記した文書）
 - 公式データ形式: http://www.jwcad.net/jwdatafmt.txt
 - MFC TN002: https://learn.microsoft.com/en-us/cpp/mfc/tn002-persistent-object-data-format
 - JwwExchange（C++ 参考実装 / Unlicense）: https://github.com/JinkiKeikaku/JwwExchange
+- LibreCAD の jwwlib（C++。上記の公式資料を同梱している）:
+  https://github.com/LibreCAD/LibreCAD/tree/master/libraries/jwwlib
+- 他の実装（C# / Go / Rust など）:
+  https://github.com/topics/jww / https://github.com/topics/jwcad
 - 先行記事: https://qiita.com/architectJapan/items/9908ac93f17d2a853855
