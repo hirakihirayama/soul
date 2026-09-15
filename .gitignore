@@ -12,3 +12,6 @@ __pycache__/
 *.JWW
 tools/jww-reader/*.pdf
 tools/jww-reader/*.svg
+
+# note 記事の書き出しPDFなど、リポジトリ直下に置いた作業用ファイル
+/*.pdf
