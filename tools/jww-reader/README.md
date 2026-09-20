@@ -687,3 +687,9 @@ soul リポジトリの他の文書（設計思想・原則を記した文書）
 - 他の実装（C# / Go / Rust など）:
   https://github.com/topics/jww / https://github.com/topics/jwcad
 - 先行記事: https://qiita.com/architectJapan/items/9908ac93f17d2a853855
+
+# 実例
+
+- 自社案件のJWW図面を一度だけ読んでSQLiteに入れ、躯体を立てて軸組図とST-Bridgeに重ねた結果(公開版):
+  [docs/jww-estimating/2026-09-sachimachi/](../../docs/jww-estimating/2026-09-sachimachi/)
+  (GitHub Pages: https://hirakihirayama.github.io/soul/docs/jww-estimating/2026-09-sachimachi/)

@@ -1,0 +1,36 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JWW図面から躯体を立てて、二つの正解に重ねた ─ ベルデュール成田幸町(公開版)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Inter:wght@400;700&display=swap">
+<style>
+:root{--brand:#106DB1;--brand-deep:#0B5FA5;--ink:#1C1E21;--ink-muted:#6B7480;--rule:#DDE2E7;--surface:#FFFFFF;--surface-alt:#F4F6F8}
+body{margin:0;background:var(--surface);color:var(--ink);font-family:"Noto Sans JP","Yu Gothic","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;font-size:16px;line-height:1.7}
+main{max-width:960px;margin:0 auto;padding:40px 24px 64px}
+h1{font-size:24px;color:var(--brand-deep);margin:0 0 8px}
+h2{font-size:20px;color:var(--brand-deep);margin:40px 0 12px;border-bottom:1px solid var(--rule);padding-bottom:6px}
+p.lead{color:var(--ink-muted);margin:0 0 24px}
+a{color:var(--brand)}
+table{border-collapse:collapse;width:100%}
+th{background:var(--surface-alt);color:var(--brand-deep);text-align:left;font-weight:700;padding:8px}
+td{padding:8px;border-bottom:1px solid var(--rule);vertical-align:top}
+figure{margin:24px 0}figure img{max-width:100%;border:1px solid var(--rule)}
+figcaption{font-size:13px;color:var(--ink-muted);margin-top:6px}
+.note{font-size:13px;color:var(--ink-muted);border-top:1px solid var(--rule);margin-top:40px;padding-top:12px}
+</style></head><body><main>
+<h1>JWW図面から躯体を立てて、二つの正解に重ねた</h1>
+<p class="lead">ベルデュール成田幸町(平山建設 自社案件・RC壁式5階・39戸・2025年7月竣工)。公開版。2026-09-20 時点</p>
+<p>社内のJWW図面(構造12枚・意匠4枚、約16万5千要素)を一度だけ読んでSQLiteに入れ、数量と同じ規則で躯体を533個の直方体として立て、軸組図とST-Bridge(構造計算モデル)に重ねた結果です。note記事「<a href="https://note.com/hidekihirayama/n/nd042cf91a2a5">BIMがなくても積算はできました ─ 社内のJWWをAIに読ませた話</a>」の続きにあたります。</p>
+<h2>成果物</h2>
+<table><tr><th>ファイル</th><th>何か</th></tr>
+<tr><td><a href="check-sheet.html">check-sheet.html</a> / <a href="check-sheet.pdf">check-sheet.pdf</a></td><td>目視チェック票(A3横・表裏)。社内では設計課と積算課が同じ紙を見て「図面にあってモデルに無いものは何か」に丸を付ける</td></tr>
+<tr><td><a href="model-compare-stb.md">model-compare-stb.md</a></td><td>JWW伏図から拾った壁と ST-Bridge の壁を1枚ずつ突き合わせた表。片方にしか無い壁の一覧</td></tr></table>
+<h2>図</h2>
+<figure><img src="img/06-flow.png" alt="JWW図面から躯体モデルまでの流れ"><figcaption>JWW → 図面.sqlite(生データ層+注釈層)→ 解釈 → 躯体モデル → 照合。図面は一度だけ読み、以後はSQLで問い合わせる</figcaption></figure>
+<figure><img src="img/01-top.jpg" alt="真上から見た躯体モデル"><figcaption>真上。屋根のパラペット(青)。開放廊下には、伏図で符号の無い区画がそのまま穴になっていた(意匠図の室名で確かめて補完)</figcaption></figure>
+<figure><img src="img/02-bird.jpg" alt="躯体モデルの鳥瞰"><figcaption>鳥瞰。壁・床板・片持ちスラブ・パラペット・基礎梁・フーチング。数量を出す関数と同じ規則で置いた直方体</figcaption></figure>
+<figure><img src="img/03-frame-overlay-y1.png" alt="軸組図との重ね合わせ(Y1通り)"><figcaption>Y1通り。灰=軸組図(JWW)、色=モデルの断面。通り芯10本・SL6本の登録残差 0mm。基礎梁とフーチングの深さが線に乗る</figcaption></figure>
+<figure><img src="img/05-stb-transform.png" alt="座標変換を壁の一致率で決める"><figcaption>ST-Bridge を伏図座標に写す変換。符号の位置から当てた読み(上・35/56本)は6m周期の通り芯に騙されていた。壁1本ずつの一致率で決めた読み(下・55/56本)</figcaption></figure>
+<figure><img src="img/04-plan-overlay.png" alt="伏図との重ね合わせ(全階)"><figcaption>伏図の線(灰)に、拾った壁(黒)と床の輪郭(水色)を重ねる。灰色のまま残った線が拾い漏れの候補</figcaption></figure>
+<h2>公開版で除いたもの</h2>
+<p>実績数量(社内の積算資料の値)、取引先名、構造事務所名、地番、担当者名。図面から拾った数量と、拾いどうしの比較(モデル実測と2D数量の差、壁の一致率、被覆率)だけを載せています。</p>
+<p class="note">設計課の法規精査・積算担当の確認前の一次判定です。数字は概算であり、建物の性能や適法性を示すものではありません。JWWの読み取り部分は <a href="../../../tools/jww-reader/">tools/jww-reader</a>(MIT)。SQL化・モデル化・照合のツールは社内リポジトリで育てており、公開の形は別途整えます。 ─ 平山建設株式会社</p>
+</main></body></html>
