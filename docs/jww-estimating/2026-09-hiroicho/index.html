@@ -1,0 +1,182 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>拾い帳は、数字の帳簿から根拠の帳簿へ ─ Claude と Blender の時代の拾い帳(公開版)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Inter:wght@400;700&display=swap">
+<style>
+:root{--brand:#106DB1;--brand-deep:#0B5FA5;--brand-light:#4689CD;--green:#0B9455;--red:#D95A5F;--ink:#1C1E21;--ink-muted:#6B7480;--rule:#DDE2E7;--surface:#FFFFFF;--surface-alt:#F4F6F8;--num:Inter,Arial,Helvetica,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--brand:#4C9EDA;--brand-deep:#7CB8E6;--ink:#ECEFF2;--ink-muted:#9BA5AE;--rule:#333A42;--surface:#16181A;--surface-alt:#1F2327}}
+:root[data-theme="dark"]{--brand:#4C9EDA;--brand-deep:#7CB8E6;--ink:#ECEFF2;--ink-muted:#9BA5AE;--rule:#333A42;--surface:#16181A;--surface-alt:#1F2327}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface);color:var(--ink);font-family:"Noto Sans JP","Yu Gothic","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;font-size:16px;line-height:1.75;font-feature-settings:"palt" 1}
+main{max-width:980px;margin:0 auto;padding:48px 24px 72px}
+.eyebrow{font-family:var(--num);font-size:12px;letter-spacing:.12em;color:var(--ink-muted);text-transform:uppercase;margin:0 0 12px}
+h1{font-size:34px;line-height:1.3;color:var(--brand-deep);margin:0 0 12px;text-wrap:balance}
+p.lead{color:var(--ink-muted);margin:0 0 28px;font-size:17px;max-width:66ch}
+h2{font-size:22px;color:var(--brand-deep);margin:56px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--rule)}
+h2 .num{font-family:var(--num);font-size:13px;font-weight:400;color:var(--ink-muted);margin-right:10px;letter-spacing:.06em}
+h3{font-size:17px;margin:28px 0 8px}
+p,li{max-width:70ch}
+a{color:var(--brand)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+caption{text-align:left;font-size:13px;color:var(--ink-muted);padding-bottom:8px}
+th{background:var(--surface-alt);color:var(--brand-deep);text-align:left;font-weight:700;padding:9px 10px;border-bottom:1px solid var(--rule)}
+td{padding:9px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+td.n,th.n{text-align:right;font-family:var(--num);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ok{color:var(--brand);font-weight:700}.mid{font-weight:700}.warn{color:var(--red);font-weight:700}.na{color:var(--ink-muted)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:8px 0 8px}
+.kpi div{border:1px solid var(--rule);border-radius:8px;padding:16px 18px}
+.kpi dt{font-size:12.5px;color:var(--ink-muted);margin:0}
+.kpi dd{margin:6px 0 0;font-family:var(--num);font-size:30px;font-weight:700;color:var(--brand-deep);line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi dd span{font-size:13px;font-family:inherit;color:var(--ink-muted);font-weight:400}
+.src{font-size:12.5px;color:var(--ink-muted);margin:6px 0 0;max-width:80ch}
+.key{border-left:3px solid var(--brand);padding-left:16px;margin:24px 0;max-width:70ch}
+.key p{margin:0 0 8px}
+figure{margin:28px 0}figure img,figure svg{max-width:100%;display:block}
+figure img{border:1px solid var(--rule)}
+figcaption{font-size:13px;color:var(--ink-muted);margin-top:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}h1{font-size:26px}}
+.card{background:var(--surface-alt);border:1px solid var(--rule);border-radius:8px;padding:18px 20px}
+.card h4{margin:0 0 8px;font-size:15px;color:var(--brand-deep)}
+.card ul{margin:0;padding-left:1.3em}
+ol.principles{counter-reset:p;list-style:none;padding:0;margin:0;max-width:none}
+ol.principles li{counter-increment:p;display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:start;max-width:none;padding:16px 0;border-bottom:1px solid var(--rule);max-width:none}
+ol.principles li::before{content:counter(p,decimal-leading-zero);font-family:var(--num);font-size:34px;font-weight:700;color:var(--brand);line-height:1}
+ol.principles b{display:block;font-size:17px;margin-bottom:4px}
+ol.principles span{color:var(--ink-muted);font-size:14.5px}
+.note{font-size:13px;color:var(--ink-muted);border-top:1px solid var(--rule);margin-top:48px;padding-top:14px}
+.layers{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.layer{display:grid;grid-template-columns:44px 190px 1fr 150px;gap:12px;align-items:center;padding:10px 14px;border:1px solid var(--rule);border-radius:8px;background:var(--surface)}
+.layer .no{font-family:var(--num);font-weight:700;color:var(--brand);font-size:20px}
+.layer .name{font-weight:700}
+.layer .what{font-size:14px;color:var(--ink-muted)}
+.layer .who{font-size:12.5px;text-align:right;color:var(--brand-deep);font-weight:700}
+.layer.human{background:var(--surface-alt)}
+@media(max-width:720px){.layer{grid-template-columns:36px 1fr;grid-auto-rows:auto}.layer .what,.layer .who{grid-column:2;text-align:left}}
+</style></head><body><main>
+
+<p class="eyebrow">Hirayama Construction · JWW estimating · 2026-09</p>
+<h1>拾い帳は、数字の帳簿から根拠の帳簿へ</h1>
+<p class="lead">Claude と Blender の時代の拾い帳。3週間で自社8案件の図面から数量を機械で拾い、7案件を実績と突き合わせた到達点と、そこから見えた「拾い帳はこう変わる」の整理です。公開版(2026-09-29 時点)。</p>
+
+<dl class="kpi">
+  <div><dt>図面から拾った案件</dt><dd>8<span> 件 ／ うち実績と突合 7</span></dd></div>
+  <div><dt>コンクリート 差率(6件)</dt><dd>−0.2 〜 −12.5<span> %</span></dd></div>
+  <div><dt>鉄筋 差率(部位×径で突合 5件)</dt><dd>−1.7 〜 −7.6<span> %</span></dd></div>
+  <div><dt>実績に寄せるための補正率</dt><dd>0<span> 個(割増率・定着長は基準どおり)</span></dd></div>
+</dl>
+<p class="src">差率 = (図面拾い − 実績) ÷ 実績。マイナスは図面拾いが実績より少ないこと。実績は工事精算書・契約内訳・構造事務所の設計数量が混ざります。新築RC造で、文字と線が座標付きで生きている図面(JWW・ベクタPDF)がある場合の値です。</p>
+
+<h2><span class="num">01</span>いまの拾い帳は、よくできている。だから足りないものがはっきりする</h2>
+<p>当社の拾い帳は Excel の汎用シートです。14階まで対応し、打設階ごとの行に「部位 × 符号 × 寸法 × 本数」を人が図面を見て打つ。コンクリート・型枠・鉄筋が1枚から出て、見積依頼書の数量はすべてこの1枚に戻れる。<strong>根拠が1枚にあることが、この帳簿の価値です。</strong>無いのは根拠の出所です。どの図面のどの版から、誰のどの決めごとで、その行が出たのかが残りません。</p>
+<p>3週間、同じ図面をプログラムで拾い、この帳簿や構造事務所の集計表と突き合わせて分かったのは、足りないのは精度ではなく次の4つだということでした。</p>
+<div class="grid2">
+  <div class="card"><h4>図面を見て打つ</h4><ul><li>同じ図面を、拾うたびに読み直す</li><li>作図者が変わると縮尺・レイヤの割当・面の並びが変わる。5系統で1つも一致しなかった</li></ul></div>
+  <div class="card"><h4>決めごとが暗黙</h4><ul><li>端部補強筋の1本の長さ、受筋の兼用、壁梁の内法。構造図のリストと伏図だけからは一意に決まらず、標準配筋図と積算の決めごとが要る値が、拾う人の中にある</li><li>差の原因を推測すると外れる。5つ立てた仮説のうち4つが積算担当の回答で否定された</li></ul></div>
+  <div class="card"><h4>版が無い</h4><ul><li>訂正を別レイヤに重ね書きし旧値を消さない図面がある(同じセルに 12 と 148)</li><li>拾い帳のどの行がどの図面のどの版から来たかが残らない</li></ul></div>
+  <div class="card"><h4>拾わなかったものが見えない</h4><ul><li>合計が合っていてもモデルは正しいとは限らない。フィルタが黙って捨てた壁237本は差率に出ない</li><li>径別の合計は部位間で打ち消し合う</li></ul></div>
+</div>
+
+<h2><span class="num">02</span>2026年の拾い帳 ─ 7つの層</h2>
+<p>拾い帳を「数量の表」ではなく「<strong>図面から数量までの根拠の連鎖</strong>」として持ち直しました。機械が持つ層と、人が書く層を分けています。</p>
+<div class="layers">
+  <div class="layer"><span class="no">1</span><span class="name">図面の正規化</span><span class="what">JWW・ベクタPDF・ST-Bridge を一度だけ読んで SQLite に入れる。以後は図面を開かず SQL で問い合わせる。sha が変われば取り直す</span><span class="who">機械</span></div>
+  <div class="layer human"><span class="no">2</span><span class="name">作図者プロファイル</span><span class="what">レイヤの役割・縮尺・面の並びを JSON に。コードに書かない。「なぜその値か」を注に残す</span><span class="who">人(初見の作図者ごとに1本)</span></div>
+  <div class="layer human"><span class="no">3</span><span class="name">諸元(決めごと)</span><span class="what">階高・SL・Fc・床面積・基礎・杭と、リストと伏図だけでは決まらない決めごと(標準配筋図・積算の慣行)。全項目に出典。既定は「図面どおり」</span><span class="who">人</span></div>
+  <div class="layer"><span class="no">4</span><span class="name">部位×役割の規則表</span><span class="what">鉄筋の素の長さ・定着・継手を「部位 × 役割」で決める。倍率をコードに書かない。素の長さはコンクリートの設計寸法</span><span class="who">機械(表は人が育てる)</span></div>
+  <div class="layer"><span class="no">5</span><span class="name">数量と拾い式</span><span class="what">断面辞書・部材配置・数量を JSON で。突合表の値は手写しせず「拾い式」で再計算する。中間ファイルに出自スタンプ</span><span class="who">機械</span></div>
+  <div class="layer human"><span class="no">6</span><span class="name">人が見る3つの材料</span><span class="what">拾わなかった表(図面にあって数量に入れなかったもの)・重ね合わせ図(軸組図・伏図 × モデル)・目視チェック票</span><span class="who">人(設計課・積算担当)</span></div>
+  <div class="layer"><span class="no">7</span><span class="name">躯体モデル(Blender)</span><span class="what">数量と同じ規則で直方体を置く。3Dは絵ではなく検算。そのまま施工段階4D・IFC へ</span><span class="who">機械</span></div>
+</div>
+<p class="src">突合表は行ごとに「突合相手」(工事精算書・型枠見積依頼書・構造事務所の設計数量…)と「出し方」(機械抽出・図面から算出・目視・逆算・配分)の列を持ち、図面から出た値か実績から逆算した値かが必ず分かるようにしています。</p>
+
+<figure>
+<svg viewBox="0 0 960 300" role="img" aria-label="図面から検算までの流れ" style="font-family:'Noto Sans JP',sans-serif">
+  <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6B7480"/></marker></defs>
+  <g font-size="13" fill="#1C1E21">
+    <rect x="8" y="30" width="140" height="64" rx="8" fill="#F4F6F8" stroke="#DDE2E7"/><text x="78" y="56" text-anchor="middle" font-weight="700">図面</text><text x="78" y="76" text-anchor="middle" font-size="11.5" fill="#6B7480">JWW／PDF／ST-Bridge</text>
+    <rect x="172" y="30" width="140" height="64" rx="8" fill="#F4F6F8" stroke="#DDE2E7"/><text x="242" y="56" text-anchor="middle" font-weight="700">正規化</text><text x="242" y="76" text-anchor="middle" font-size="11.5" fill="#6B7480">図面.sqlite(一度だけ読む)</text>
+    <rect x="336" y="30" width="140" height="64" rx="8" fill="#F4F6F8" stroke="#DDE2E7"/><text x="406" y="56" text-anchor="middle" font-weight="700">部材抽出</text><text x="406" y="76" text-anchor="middle" font-size="11.5" fill="#6B7480">リスト図の表＋伏図の符号</text>
+    <rect x="500" y="30" width="140" height="64" rx="8" fill="#F4F6F8" stroke="#DDE2E7"/><text x="570" y="56" text-anchor="middle" font-weight="700">数量</text><text x="570" y="76" text-anchor="middle" font-size="11.5" fill="#6B7480">コン・型枠・鉄筋・仕上</text>
+    <rect x="664" y="30" width="140" height="64" rx="8" fill="#F4F6F8" stroke="#DDE2E7"/><text x="734" y="56" text-anchor="middle" font-weight="700">実績突合</text><text x="734" y="76" text-anchor="middle" font-size="11.5" fill="#6B7480">行ごとに突合相手を書く</text>
+    <rect x="828" y="30" width="124" height="64" rx="8" fill="#0B5FA5"/><text x="890" y="56" text-anchor="middle" font-weight="700" fill="#fff">人が検算</text><text x="890" y="76" text-anchor="middle" font-size="11.5" fill="#fff">設計課・積算担当</text>
+    <line x1="148" y1="62" x2="170" y2="62" stroke="#6B7480" stroke-width="1.5" marker-end="url(#ar)"/><line x1="312" y1="62" x2="334" y2="62" stroke="#6B7480" stroke-width="1.5" marker-end="url(#ar)"/><line x1="476" y1="62" x2="498" y2="62" stroke="#6B7480" stroke-width="1.5" marker-end="url(#ar)"/><line x1="640" y1="62" x2="662" y2="62" stroke="#6B7480" stroke-width="1.5" marker-end="url(#ar)"/><line x1="804" y1="62" x2="826" y2="62" stroke="#6B7480" stroke-width="1.5" marker-end="url(#ar)"/>
+    <rect x="336" y="118" width="304" height="52" rx="8" fill="#fff" stroke="#106DB1"/><text x="488" y="140" text-anchor="middle" font-weight="700" fill="#0B5FA5">躯体モデル(Blender)</text><text x="488" y="158" text-anchor="middle" font-size="11.5" fill="#6B7480">数量と同じ規則で直方体を置く → 4D・IFC へ</text>
+    <line x1="570" y1="94" x2="570" y2="116" stroke="#6B7480" stroke-width="1.5" marker-end="url(#ar)"/>
+    <text x="8" y="212" font-size="12" fill="#6B7480">人が見る3つの材料(数量が合っていてもモデルが正しいとは限らないため)</text>
+    <rect x="8" y="224" width="300" height="62" rx="8" fill="#fff" stroke="#106DB1"/><text x="22" y="248" font-weight="700" fill="#0B5FA5">拾わなかった表</text><text x="22" y="268" font-size="11.5" fill="#6B7480">図面にあって数量に入れなかったものを件数・延長・概算体積で</text>
+    <rect x="330" y="224" width="300" height="62" rx="8" fill="#fff" stroke="#106DB1"/><text x="344" y="248" font-weight="700" fill="#0B5FA5">重ね合わせ図</text><text x="344" y="268" font-size="11.5" fill="#6B7480">伏図・軸組図・立面・断面に拾った躯体を重ね、残った線を見る</text>
+    <rect x="652" y="224" width="300" height="62" rx="8" fill="#fff" stroke="#106DB1"/><text x="666" y="248" font-weight="700" fill="#0B5FA5">目視チェック票</text><text x="666" y="268" font-size="11.5" fill="#6B7480">設計課と積算担当が同じ紙を見て、無いものに丸を付ける</text>
+    <line x1="890" y1="94" x2="890" y2="196" stroke="#6B7480" stroke-width="1.5"/><line x1="890" y1="196" x2="158" y2="196" stroke="#6B7480" stroke-width="1.5"/>
+    <line x1="158" y1="196" x2="158" y2="222" stroke="#6B7480" stroke-width="1.5" marker-end="url(#ar)"/><line x1="480" y1="196" x2="480" y2="222" stroke="#6B7480" stroke-width="1.5" marker-end="url(#ar)"/><line x1="802" y1="196" x2="802" y2="222" stroke="#6B7480" stroke-width="1.5" marker-end="url(#ar)"/>
+  </g>
+</svg>
+<figcaption>図面から検算までの1本の流れ。途中の結果はすべてファイルに落ちるので、どの段階からでもやり直せる</figcaption>
+</figure>
+
+<h2><span class="num">03</span>5つの原則</h2>
+<ol class="principles">
+  <li><div><b>図面は一度だけ読む</b><span>読み直すたびに縮尺や登録を考え直すのが事故のもとだった。正規化して SQL で引く。正本は原図、DB は派生物</span></div></li>
+  <li><div><b>形状は機械、決めごとは人</b><span>形状は図面から一意に取れる。定着の取り方や受筋の兼用は取れない。人が書く値は1つの JSON に集め、全項目に出典を付ける</span></div></li>
+  <li><div><b>規則は表に、実績に合わせる倍率はコードに書かない</b><span>鉄筋は「部位 × 役割 → 素の長さ・定着・継手」の表で決める(割増率・定着長は公共建築数量積算基準と図面の表どおり)。表を直せば次の案件から効く。素の長さに定着を含めた二重計上が3箇所あった</span></div></li>
+  <li><div><b>率で埋めない</b><span>合わない部位を実績に寄せる補正率で埋めると「ある様式に合った」だけになり、次の案件で再現しない。残差にはすべて説明を付ける。説明できない残差は残差のまま書く</span></div></li>
+  <li><div><b>人が見るのは拾った表ではなく、拾わなかった表</b><span>合計は打ち消し合う。図面にあって数量に入れなかったものを並べ、3Dモデルを図面に重ね、設計と積算が同じ紙を見る</span></div></li>
+</ol>
+
+<h2><span class="num">04</span>Blender の役割 ─ 3Dは絵ではなく検算</h2>
+<p>数量を出す関数と同じ規則で、壁・床板・基礎梁・フーチング・パラペットを直方体として置きます。そのモデルを軸組図・立面・断面・伏図に重ねると、数量の表を見ていても気づけない欠落が見えます。壁だけ原点を引き忘れて建物の外へ飛び散っていた、屋上パラペットが丸ごと無かった、階の割当から漏れた壁が237本あった。どれも合計の差率には出ませんでした。</p>
+<div class="grid2">
+  <figure><img src="../2026-09-sachimachi/img/02-bird.jpg" alt="躯体モデルの鳥瞰"><figcaption>数量と同じ規則で置いた直方体(壁式RC 5階の例)</figcaption></figure>
+  <figure><img src="../2026-09-sachimachi/img/03-frame-overlay-y1.png" alt="軸組図との重ね合わせ"><figcaption>軸組図(灰)にモデルの断面(色)を重ねる。通り芯と SL の登録残差 0 mm</figcaption></figure>
+</div>
+<p>同じ .blend から、段階別4D(仮設物込みのアニメーション、ターンテーブル、工程表に尺を合わせた説明動画)と IFC(躯体の直方体のみ)へ書き出せます。4D まで実走したのはまだ1案件です。<strong>拾い帳の一番下の層が3Dモデルになれば、積算と施工計画が同じ根拠を共有できます。</strong></p>
+
+<h2><span class="num">05</span>どれだけ合ったか</h2>
+<table>
+<caption>図面拾いと実績数量の差 ／ 単位：% ／ 2026-09-27 時点の値 ／ マイナスは図面拾いが実績より少ない ／ 出典: 社内の突合表</caption>
+<thead><tr><th>案件</th><th>入口</th><th>突合相手</th><th class="n">コンクリート</th><th class="n">型枠</th><th class="n">鉄筋</th></tr></thead>
+<tbody>
+<tr><td>壁式RC 3階・約4,800 ㎡(成田市)</td><td>構造図JWW</td><td>施工実績(コン・型枠)／構造事務所の設計数量(鉄筋)</td><td class="n mid">−9.1</td><td class="n ok">−3.3</td><td class="n ok">−6.3</td></tr>
+<tr><td>壁式RC 5階・約1,900 ㎡(成田市)</td><td>構造図JWW＋ST-Bridge</td><td>施工実績(コン)／当社の拾い(型枠・鉄筋)</td><td class="n ok">−0.2</td><td class="n ok">+1.9</td><td class="n ok">−1.7</td></tr>
+<tr><td>壁式RC 6階・約1,600 ㎡(江戸川区)</td><td>構造図JWW</td><td>構造事務所の設計数量</td><td class="n ok">−4.1</td><td class="n ok">−2.6</td><td class="n ok">−7.6</td></tr>
+<tr><td>壁式RC 4階・約2,300 ㎡(船橋市)</td><td>構造図JWW</td><td>構造事務所の設計数量</td><td class="n ok">−7.2</td><td class="n ok">−1.4</td><td class="n ok">−7.4</td></tr>
+<tr><td>壁式RC 4階・約2,000 ㎡(船橋市)</td><td>構造図PDFのみ(実績を見ずに拾った)</td><td>積算ソフトの集計表(鉄筋のみ)</td><td class="n na">—</td><td class="n na">—</td><td class="n ok">−6.0</td></tr>
+<tr><td>壁式RC 3階・約500 ㎡(成田市)</td><td>構造図PDF(目視転記)</td><td>契約内訳(全工種)</td><td class="n ok">−3.9</td><td class="n warn">定義差</td><td class="n mid">−8.5<br><span class="na" style="font-weight:400;font-size:12px">参考値(段が違う)</span></td></tr>
+<tr><td>ラーメンRC 6階・約1,500 ㎡(足立区)</td><td>構造図JWW</td><td>契約数量</td><td class="n warn">−12.5</td><td class="n mid">−9.6</td><td class="n na">未算出</td></tr>
+</tbody></table>
+<p class="src">鉄筋は「定着・継手込み、材料ロス前」の段で部位×径に並べた計(目視転記の案件のみ加工組立の対象数量比で段が違うため参考値)。青は ±10% 以内(概算・予算枠の用途での線)、太字は閾値の近くで要精査。コンクリート・型枠も初見は −0.8〜−11.3% で、積算担当の回答と図面の再読で直した後の値です。前の記事で公開済みの案件を含みます。型枠の「定義差」は実績側にスラブ小口・開口見込・雑型枠が含まれる差で、基礎を同じ拾い方にそろえると −2.4%。ラーメンRCのコンクリートは腰壁・垂れ壁など未計上部位の積み上げで差の6割が説明でき、残り約5%は未特定。鉄筋は3週間前の −12〜−29% から、率で埋めずに部位ごとに直した値です。</p>
+
+<div class="key">
+  <p><strong>鉄筋は「部位×径」で見ないと直す場所が分かりません。</strong>内訳書の合計と −7.8% で合って見えていた案件を、実績側を同じ段(ロス前・部位別)にそろえ直して部位×径に分けると −12.3% で、基礎 −77%・壁 −22% のマスがありました。部位ごとに直して −6.3%、±5% 以内のマスは 2 → 7 に増えました。合計だけを見ていたら直す場所は分からなかったはずです。</p>
+</div>
+
+<h2><span class="num">06</span>道具立て</h2>
+<dl class="kpi">
+  <div><dt>手順書</dt><dd>12<span> 本 ／ 約 9,000 行</span></dd></div>
+  <div><dt>スクリプト(Python)</dt><dd>116<span> 本 ／ 約 34,000 行</span></dd></div>
+  <div><dt>作図者プロファイル</dt><dd>5<span> 本</span></dd></div>
+  <div><dt>積算担当への問い</dt><dd>29<span> 問 未決</span></dd></div>
+</dl>
+<table>
+<caption>スクリプトの層 ／ 2026-09-29 時点 ／ 本数は名前の規則で機械的に数えたもの</caption>
+<thead><tr><th>層</th><th class="n">本数</th><th>役割</th></tr></thead>
+<tbody>
+<tr><td>0 素性・正規化</td><td class="n">7</td><td>図面を一度だけ読んで SQL で問い合わせる。作図者ごとの癖はここで吸収</td></tr>
+<tr><td>1 抽出(構造図・意匠図)</td><td class="n">21</td><td>リスト図の表 → 断面辞書、伏図の符号と線 → 部材配置、建具表・室・文字の数</td></tr>
+<tr><td>2 数量</td><td class="n">22</td><td>コン・型枠・鉄筋(規則は部位×役割の表)、仮設・仕上・外構</td></tr>
+<tr><td>3 突合</td><td class="n">19</td><td>実績(正解データ)を読み、段と部位を揃えて並べる</td></tr>
+<tr><td>4 検算(人が見る材料)</td><td class="n">9</td><td>拾わなかった表・重ね合わせ図・チェック図・目視チェック票</td></tr>
+<tr><td>5 モデル(Blender)</td><td class="n">17</td><td>数量と同じ規則で躯体を立てる。IFC・OBJ・DXF の受け渡し</td></tr>
+<tr><td>6 可視化・4D</td><td class="n">10</td><td>パース・ターンテーブル・段階別4D・SNS 向け動画</td></tr>
+<tr><td>7 配布</td><td class="n">9</td><td>数量内訳書・突合表・確認事項・HTML/PDF</td></tr>
+</tbody></table>
+<p class="src">コードは Claude が書き、人はルールを決めて数字を疑います。手順書にルールを文章で書いてからコードに落とす往復。JWW の読み取り部分は <a href="https://github.com/hirakihirayama/soul/tree/main/tools/jww-reader">tools/jww-reader</a>(MIT)。</p>
+
+<h2><span class="num">07</span>まだできていないこと</h2>
+<ul>
+  <li>内装の壁・天井(下地・ボード・クロスが別々の面積で拾われている。こちらは1つの壁面積を3工種に使い回している)</li>
+  <li>鉄筋の残り(壁端部補強筋の1本の長さ、受筋の兼用、基礎梁主筋の連続区間。図面から一意に決まらない決めごと)</li>
+  <li>ラーメン構造の鉄筋、設備、スキャンPDF(OCRはしない)、施工計画で決まる数量(根切り・床付けの範囲)</li>
+</ul>
+
+<p class="note">設計課の法規精査・積算担当の確認前の一次判定です。数字は概算であり、建物の性能や適法性を示すものではありません。公開版では案件名・地番・実績数量の絶対値・取引先名・担当者名を除き、差率と件数だけを載せています。前の記事: <a href="../2026-09-sachimachi/">JWW図面から躯体を立てて、二つの正解に重ねた</a> ／ note「<a href="https://note.com/hidekihirayama/n/nd042cf91a2a5">BIMがなくても積算はできました</a>」 ─ 平山建設株式会社</p>
+</main></body></html>
