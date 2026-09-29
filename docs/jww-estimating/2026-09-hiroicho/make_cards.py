@@ -41,8 +41,8 @@ FOOT = '<div class="foot"><span><b>平山建設</b> ／ JWW estimating ／ 2026-
 CARDS = {
  '01-title': f'''{CSS}<div class="card">
 <p class="eyebrow">Hirayama Construction · Claude + Blender</p>
-<h1>拾い帳は、数字の帳簿から<br>根拠の帳簿へ</h1>
-<p class="sub">図面から数量までの根拠の連鎖を、機械が持つ層と人が書く層に分けた7つの層</p>
+<h1>AI積算の拾い帳は、<br>データベースである</h1>
+<p class="sub">図面から数量までの7つの層。1〜5 は Claude が読み書きするテーブル、6・7 はそこから生成。人が書くのは 2・3 と 6 への所見</p>
 <div class="layers">
 <div class="layer"><span class="n">1</span><div><b>図面の正規化</b><span>一度だけ読んで SQLite に。以後は SQL で問い合わせる</span></div></div>
 <div class="layer h"><span class="n">2</span><div><b>作図者プロファイル</b><span>レイヤ・縮尺・面の並び。コードに書かない</span></div></div>
@@ -87,13 +87,13 @@ CARDS = {
 
  '04-before-after': f'''{CSS}<div class="card">
 <p class="eyebrow">Before / After</p>
-<h1>いまの拾い帳と、2026年の拾い帳</h1>
+<h1>人が打つ拾い帳と、AI が読み書きする拾い帳</h1>
 <div class="ba">
-<div class="col"><h3>Excel の汎用シート</h3><ul>
-<li>打設階 × 部位 × 符号 × 寸法 × 本数を人が打つ</li><li>3工種が1枚から出る。根拠が1枚にある</li><li>図面は拾うたびに読み直す</li><li>決めごとは拾う人の中にある</li><li>版が無い。拾わなかったものは見えない</li></ul></div>
+<div class="col"><h3>Excel の拾い帳(人が図面を見て打つ)</h3><ul>
+<li>人が図面を読んで、部位 × 符号 × 寸法 × 本数を打つ</li><li>3工種が1枚から出る。根拠が1枚にある</li><li>図面は拾うたびに読み直す</li><li>決めごとは拾う人の中にある</li><li>AI が読み書きする入口(スキーマ・版・出典)は、当社の使い方では見つからなかった</li></ul></div>
 <div class="arrow">→</div>
-<div class="col after"><h3>根拠の連鎖(7つの層)</h3><ul>
-<li>図面を一度だけ読み、SQL で問い合わせる</li><li>形状は機械が拾い、決めごとは人が書く(出典つき)</li><li>規則は部位×役割の表。倍率をコードに書かない</li><li>拾わなかった表と3Dの重ね合わせを人が見る</li><li>同じモデルが施工4Dと IFC へ流れる</li></ul></div>
+<div class="col after"><h3>データベース(7つの層)</h3><ul>
+<li>図面を一度だけ SQLite に入れ、SQL で問い合わせる</li><li>形状は機械が拾い、決めごとは人が書く(出典つき)</li><li>規則は部位×役割の表。倍率をコードに書かない</li><li>拾わなかった表と3Dの重ね合わせを人が見る</li><li>同じモデルが施工4Dと IFC へ流れる</li></ul></div>
 </div>{FOOT}</div>''',
 }
 
