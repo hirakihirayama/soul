@@ -25,9 +25,28 @@ class R:
     def by(s): v=s.b[s.p]; s.p+=1; return v
     def d(s):  v=struct.unpack('<d', s.b[s.p:s.p+8])[0]; s.p+=8; return v
     def st(s):
+        """MFC の CString。**Unicode 保存されたファイルがある**(2026-09-30)。
+
+        MFC の長さプレフィクスは `0xFF` の次が `0xFFFE` だと
+        「この文字列は Unicode(UTF-16LE)」のマーカーで、**そのあとに長さを読み直す**
+        (afx: _AfxReadStringLength)。これを知らないと長さ 0xFFFE = 65,534 と誤読し、
+        **ヘッダ終端が数万バイト先へ飛んでエンティティリストを見失う**
+        (`エンティティリストの先頭が見つかりません`)。
+
+        実例: ＤＯビル花崎町Ⅵ の意匠図 19点のうち **15点がこれ**だった。
+        同じ Ver700・同じ設計事務所でも、ファイルによって ANSI と Unicode が混在する。
+        **バージョンでは判別できない。**先頭16バイト目が `FF FE …` なら Unicode。
+        """
         n=s.by()
         if n==0xFF:
             n=s.w()
+            if n==0xFFFE:          # Unicode(UTF-16LE)。長さを読み直す
+                n=s.by()
+                if n==0xFF:
+                    n=s.w()
+                    if n==0xFFFF: n=s.dw()
+                v=s.b[s.p:s.p+n*2]; s.p+=n*2
+                return v.decode('utf-16-le','replace')
             if n==0xFFFF: n=s.dw()
         v=s.b[s.p:s.p+n]; s.p+=n
         return v.decode('cp932','replace')
