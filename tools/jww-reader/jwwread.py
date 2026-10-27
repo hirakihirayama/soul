@@ -135,10 +135,12 @@ def read(path):
     assert r.b[:8]==b'JwwData.', 'JWWではありません'
     r.p=8
     ver=r.dw(); memo=r.st(); zumen=r.dw(); r.dw()
-    scale={}
+    # レイヤグループ・レイヤの状態(jwdatafmt: m_anGLay / m_aanLay)。0 非表示 / 1 表示のみ / 2 編集可能 / 3 書込み。
+    # **印刷に出ない下図を非表示レイヤに残す図面がある**(DXF から変換した意匠図。通り名の無い通り芯の丸など)
+    scale={}; gstate=[]; lstate={}
     for g in range(16):
-        r.dw(); r.dw(); scale[g]=r.d(); r.dw()
-        for l in range(16): r.dw(); r.dw()
+        gstate.append(r.dw()); r.dw(); scale[g]=r.d(); r.dw()
+        for l in range(16): lstate[(g,l)]=r.dw(); r.dw()
     p_after_scale = r.p   # Ver3.51 未満はここから先のレイアウトが違う
     for _ in range(14): r.dw()
     for _ in range(5):  r.dw()
@@ -268,6 +270,7 @@ def read(path):
         idx+=1   # MFC: オブジェクトもクラスと同じ番号表を1つ消費する
     rest=len(r.b)-r.p
     return {'version':ver,'zumen':zumen,'memo':memo,'scale':scale,
+            'glayer_state':gstate,'layer_state':lstate,
             'layers':{k:v for k,v in lay.items() if v},'glayers':glay,
             'pen_color':pen_color,'pen_width':pen_width,
             'declared':n_declared,'entities':ents,'trailing_bytes':rest,

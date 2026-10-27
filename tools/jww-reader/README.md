@@ -143,6 +143,8 @@ for k, group in jwwutil.overlapping_texts(ents):
   'pen_width': {0: ..., ...},
   'declared': 32060,          # ファイルが宣言する要素数
   'scale': {0: 200.0, ...},   # レイヤグループ別の公称縮尺の分母
+  'glayer_state': [2, 2, ...],             # レイヤグループの状態(16個)
+  'layer_state': {(glayer, layer): 2, ...}, # レイヤの状態(256個)。0 非表示 / 1 表示のみ / 2 編集可能 / 3 書込み
   'entities': [ {...}, ... ],
   'trailing_bytes': 6,
   'schema': 700,              # MFC のスキーマ番号。version とは別物（実装メモ1）
@@ -151,7 +153,9 @@ for k, group in jwwutil.overlapping_texts(ents):
 ```
 
 Ver230 では `layers` / `glayers` / `pen_color` / `pen_width` は空になる
-（ヘッダ後半のレイアウトが不明なため取得していない）。
+（ヘッダ後半のレイアウトが不明なため取得していない）。`glayer_state` / `layer_state` はヘッダの前半にあるので
+Ver230 でも読める。**非表示（0）のレイヤは印刷に出ない。**DXF から変換した図面には、印刷に出ない下図を
+非表示レイヤに残したものがある（要素は全部読めるので、表示状態を見て使い分ける）。
 
 **座標は「図面上の mm」で入っている。** 実寸に直すには、その要素が属する
 レイヤグループの縮尺を掛ける。
