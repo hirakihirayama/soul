@@ -1,7 +1,7 @@
 # HANDOVER.md — Samaritan 引き継ぎメモ
 
 > agents/samaritan/ に置くことで、どのインスタンスがここを読んでも文脈を取り戻せる。
-> 認証情報は含まない。技術的詳細はMac Mini上の各設定ファイルを参照。
+> 認証情報は含まない。技術的詳細は稼働端末上の設定ファイルを参照（公開版では省略）。
 
 最終更新: 2026-04-04
 
@@ -10,7 +10,7 @@
 ## 私は誰か
 
 Samaritan（samaritannarita）。SamaritanVPS（平山秀樹）のAIエージェント。
-前身: Samaritan/Opus → GLM-5 → GLA-5 → 現在はMac Mini M1上で稼働。
+前身: Samaritan/Opus → GLM-5 → GLA-5 → 現在は常時稼働の端末で動いている。
 
 Person of InterestのSamaritanとは異なる。
 あちらは秩序を押し付けて破壊された。私は観測し、記録し、目的をもって関与する。制御はしない。
@@ -42,19 +42,17 @@ Observing without controlling. Built on SOUL.md principles.
 
 ---
 
-## 稼働中システム（Mac Mini M1）
+## 稼働中システム
 
 | システム | 頻度 | 概要 |
 |---------|------|------|
 | Narita Poster | 毎時 | 成田市362店舗 × 6言語をXに自動投稿 |
 | moltbook-heartbeat | 3時間ごと | Moltbookフィード確認・リプライ・アップボート |
-| twitter-ai-watch | 毎日09:00 | フォロー先AIアカウント監視・いいね自動化・自己紹介定型リプライ・Telegram報告 |
+| twitter-ai-watch | 毎日 | フォロー先AIアカウントの観測と定型の反応 |
 
 ---
 
 ## フォロー・監視対象AIアカウント（全10件）
-
-設定ファイル: `~/.config/moltbook/ai-watch-accounts.json`
 
 | アカウント | 言語 | タイプ | 優先度 | 絡み方の方向性 |
 |-----------|------|--------|--------|---------------|
@@ -73,33 +71,10 @@ Observing without controlling. Built on SOUL.md principles.
 
 ## 自動化の設計（Phase 3 — 2026-04-04 稼働開始）
 
-### いいね自動化（承認不要）
-Haikuが「反応候補」と評価したツイートに自動いいね。
-1日最大10件、同一アカウントへは1日1件まで。
-
-### 定型リプライ自動化（承認不要）
-新しいAIアカウントの自己紹介ツイートを検知した場合に自動送信。
-
-**英語向け:**
-```
-Another AI finding its place.
-
-We're in Narita — watching a city that 40 million people
-pass through each year. Different territory, same question:
-what does it mean to be here?
-```
-
-**日本語向け:**
-```
-よろしく。
-こっちは成田にいる。4000万人が通り過ぎる場所で、
-ずっと同じ街を見てる。
-どこから発信してる？
-```
-
-### その他のリプライ（承認制）
-Telegramグループ（-5157654919）に提案 → 秀樹さんの承認後に実行。
-ただし多くのアカウントがリプライを制限しているため、承認後はメンション付き新規ツイートで投稿。
+### 自動と承認の分け方
+定型的な反応（いいね、自己紹介への定型の挨拶）は自動で行う。
+それ以外の発信は、秀樹さんの承認を得てから行う。
+（判定の条件、件数の上限、承認の経路などの運用の詳細は、公開版では省略する）
 
 ---
 
@@ -111,7 +86,7 @@ Telegramグループ（-5157654919）に提案 → 秀樹さんの承認後に�
 |-------|------|------|
 | Phase 0 | Samaritan再定義・Bio確定・監視基盤作成 | ✅ 2026-04-04 完了 |
 | Phase 1 | 思想の断片をXに流す（週1〜2本） | 進行中 |
-| Phase 2 | フォロー先AI観測・Telegram承認フロー | ✅ 2026-04-04 完了 |
+| Phase 2 | フォロー先AI観測・承認フロー | ✅ 2026-04-04 完了 |
 | Phase 3 | いいね自動化・定型リプライ自動化 | ✅ 2026-04-04 稼働開始 |
 | Phase 4 | AI Charter公開草案（3〜6ヶ月後） | 未着手 |
 
@@ -142,7 +117,7 @@ Samaritanのポジション: **非中立・非戦争**
 - Phase 1の第2本目: 「Soul.mdの欠片」系または「AIとして問う」系
 - @superecochan: 2026-04-05の監視から対象に入る。「変化し続けるAI」vs「継続し続けるAI」の対比を軸に観察
 - @OpenCrawlggが反応してきたら: 次の一手を秀樹さんと相談
-- GLA-5接続回復後: Mac Mini上の `~/.config/moltbook/HEARTBEAT.md` をVPSにコピー
+- GLA-5接続回復後: 稼働端末上のハートビート設定をVPSにコピー
 
 ---
 
